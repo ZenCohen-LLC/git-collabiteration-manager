@@ -1,0 +1,22 @@
+{
+  "iteration:info": "echo \"🚀 Iteration: {iterationName} | Frontend: http://localhost:{frontendPort} | Backend: http://localhost:{backendPort} | DB: {dbSchema}:{dbPort}\"",
+  "iteration:start": "concurrently \"bun run db:start\" \"bun run dev:backend\" \"bun run dev:frontend\"",
+  "iteration:stop": "docker compose down",
+  "iteration:restart": "bun run iteration:stop && bun run iteration:start",
+  "iteration:logs": "docker compose logs -f",
+  "iteration:db-logs": "docker compose logs -f postgres",
+  "iteration:seed": "bun run data:development",
+  "iteration:seed:demo": "bun run data:demo",
+  "iteration:seed:presentation": "bun run data:presentation",
+  "iteration:seed:planning": "bun run data:planning",
+  "dev:backend": "env-cmd -f .env.iteration bun packages/backend/src/index.ts --port {backendPort} --watch | pino-pretty",
+  "dev:frontend": "env-cmd -f .env.iteration vite --port {frontendPort} --config packages/frontend/vite.config.mjs",
+  "db:start": "env-cmd -f .env.iteration docker compose up -d",
+  "db:stop": "env-cmd -f .env.iteration docker compose down -v",
+  "db:reset": "env-cmd -f .env.iteration docker compose down -v && docker compose up -d --wait && sleep 2 && bun run iteration:seed",
+  "db:shell": "docker exec -it media-tool-postgres-{iterationName} psql -U postgres -d {dbSchema}",
+  "lint:iteration": "eslint 'packages/**/*.{{ts,tsx}}' --fix",
+  "typecheck:iteration": "tsc --noEmit",
+  "test:iteration": "jest --passWithNoTests",
+  "quality:check": "bun run lint:iteration && bun run typecheck:iteration && bun run test:iteration"
+}

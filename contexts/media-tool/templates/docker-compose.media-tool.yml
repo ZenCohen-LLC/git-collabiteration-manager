@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:16.3
+    ports:
+      - '{dbPort}:5432'
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: {dbSchema}
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-q', '-U', 'postgres']
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    volumes:
+      - postgres_data_{iterationName}:/var/lib/postgresql/data
+
+  flyway:
+    image: flyway/flyway:10.16
+    command: -url=jdbc:postgresql://postgres:5432/{dbSchema} -ignoreMigrationPatterns="*:missing" -schemas=media_tool,cds -locations="filesystem:/migrations,filesystem:/fixtures" -createSchemas="true" -user=postgres -password=postgres migrate
+    volumes:
+      - ./db/migrations:/migrations
+      - ./db/fixtures:/fixtures
+    environment:
+      FLYWAY_PLACEHOLDERS_MEDIA_TOOL_USER_PASSWORD: pass
+      FLYWAY_PLACEHOLDERS_SNOWFLAKE_LOADER_USER_PASSWORD: pass
+      FLYWAY_PLACEHOLDERS_MEDIA_TOOL_DB_NAME_SUFFIX: '_{iterationName}'
+      FLYWAY_PLACEHOLDERS_GRAFANA_READER_PASSWORD: pass
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data_{iterationName}:
+    name: media_tool_{iterationName}_postgres_data

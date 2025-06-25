@@ -1,0 +1,142 @@
+{
+  "projectId": "brkthru-media-tool",
+  "name": "Brkthru Media Tool",
+  "version": "1.0.0",
+  "fingerprint": {
+    "gitRemote": "*/media-tool*",
+    "packageJson": {
+      "workspaces": ["packages/*"],
+      "dependencies": {
+        "@date-fns/utc": "*",
+        "pg-promise": "*",
+        "concurrently": "*"
+      }
+    },
+    "dockerCompose": true,
+    "directories": [
+      "packages",
+      "packages/frontend", 
+      "packages/backend",
+      "packages/shared",
+      "db",
+      "db/migrations",
+      "terraform",
+      "utils/synthetic-data",
+      "playwright-tests"
+    ],
+    "frameworks": [
+      "react",
+      "vite",
+      "vite-react", 
+      "typescript",
+      "postgresql",
+      "docker",
+      "bun",
+      "monorepo",
+      "database-migrations",
+      "jest",
+      "playwright"
+    ],
+    "customMarkers": [
+      "CLAUDE.md",
+      "Justfile", 
+      "bunfig.toml",
+      "bun.lock",
+      ".pre-commit-config.yaml",
+      "dir:db/migrations",
+      "dir:packages/frontend",
+      "dir:packages/backend", 
+      "dir:packages/shared",
+      "dir:terraform",
+      "dir:utils/synthetic-data"
+    ],
+    "filePatterns": {
+      "package.json": true,
+      "tsconfig.json": true,
+      "docker-compose.yml": true,
+      "Dockerfile": true,
+      ".eslintrc.js": true,
+      ".prettierrc": true,
+      "jest.config.js": true,
+      "playwright.config.ts": true
+    }
+  },
+  "database": {
+    "type": "postgresql",
+    "basePort": 5452,
+    "schemaTemplate": "media_tool_{iteration}",
+    "migrations": {
+      "enabled": true,
+      "path": "db/migrations",
+      "tool": "flyway"
+    },
+    "dataSeeding": {
+      "commands": {
+        "demo": "bun run data:demo",
+        "development": "bun run data:dev", 
+        "presentation": "bun run data:presentation",
+        "planning": "bun run data:planning",
+        "incomplete": "bun run data:incomplete",
+        "complete": "bun run data:complete"
+      },
+      "defaultSeed": "development"
+    }
+  },
+  "services": {
+    "frontend": {
+      "type": "vite-react",
+      "basePort": 3020,
+      "directory": "packages/frontend",
+      "command": "env-cmd -f .env.iteration vite --port {port} --config packages/frontend/vite.config.mjs",
+      "buildCommand": "bun run build:frontend",
+      "env": {
+        "VITE_BACKEND_URL": "http://localhost:{backendPort}",
+        "ITERATION_NAME": "{iterationName}",
+        "ITERATION_BRANCH": "{iterationBranch}"
+      },
+      "dependencies": ["backend"]
+    },
+    "backend": {
+      "type": "bun-node",
+      "basePort": 3021, 
+      "directory": "packages/backend",
+      "command": "env-cmd -f .env.iteration bun packages/backend/src/index.ts --port {port} --watch | pino-pretty",
+      "buildCommand": "bun run build:backend",
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "{dbPort}",
+        "DB_NAME": "{dbSchema}",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "postgres",
+        "FRONTEND_URL": "http://localhost:{frontendPort}",
+        "NODE_ENV": "development",
+        "ITERATION_NAME": "{iterationName}",
+        "ITERATION_BRANCH": "{iterationBranch}"
+      },
+      "dependencies": ["database"]
+    }
+  },
+  "iteration": {
+    "workspacePath": ".git-iterations",
+    "branchPrefix": "iteration/", 
+    "autoSeeding": true,
+    "autoInstall": true,
+    "prTemplate": "media-tool-pr.md"
+  },
+  "customHooks": {
+    "postCreate": "setupMediaToolIteration",
+    "preStart": "seedDatabase",
+    "preShare": "runLintAndTypecheck"
+  },
+  "templates": {
+    "dockerCompose": "docker-compose.media-tool.yml",
+    "env": "env.media-tool.template",
+    "packageScripts": "package-scripts.media-tool.json"
+  },
+  "metadata": {
+    "created": "2025-06-25T18:00:00.000Z",
+    "lastUsed": "2025-06-25T18:00:00.000Z", 
+    "usageCount": 0,
+    "description": "Comprehensive media buying and campaign management platform built with TypeScript, React, and PostgreSQL. Features monorepo structure with frontend/backend/shared packages, Flyway migrations, Docker services, and rich data seeding capabilities."
+  }
+}
