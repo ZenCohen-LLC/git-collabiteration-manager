@@ -47,6 +47,13 @@ Work iteratively with the user to:
 - Plan testing strategy
 - Set success criteria
 
+**IMPORTANT RULE**: Every implementation phase MUST include testing requirements:
+- Unit tests for new functions and components
+- Integration tests for feature workflows
+- Playwright E2E tests for user-facing functionality
+- Performance tests where applicable
+- Testing is not optional - it's part of the implementation
+
 ### 8. Document Everything
 All information gathered must be documented in the `ITERATION_PLAN.md` file as you go, including:
 - Problem context
@@ -108,6 +115,18 @@ Every iteration plan MUST start with:
 ```
 
 ## Critical Requirements
+
+### Testing Is Mandatory
+**RULE**: Every implementation phase MUST include comprehensive testing:
+1. **No feature is complete without tests** - Testing is part of implementation, not a separate phase
+2. **Required test types**:
+   - Unit tests for all new functions and components
+   - Integration tests for feature workflows
+   - Playwright E2E tests for user-facing changes
+   - Performance tests where applicable
+3. **Test-Driven Development** encouraged where possible
+4. **Each parallel agent** must deliver tested code
+5. **Definition of Done** includes passing tests
 
 ### Iteration Assistant Integration
 **IMPORTANT**: The process MUST include:

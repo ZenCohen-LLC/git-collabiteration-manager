@@ -103,10 +103,17 @@ Now let's plan the technical approach:
 ```
 Let's define the testing approach:
 
+REMEMBER: Testing is NOT optional - it's part of every implementation!
+
 1. What unit tests will be needed?
 2. What integration tests should we include?
 3. What Playwright E2E tests would verify success?
 4. How will we know when this feature is working correctly?
+
+Each implementation phase will include:
+- Writing tests alongside the code
+- Running tests to verify functionality
+- No feature is "done" without passing tests
 ```
 
 ### Step 7: Confirm and Document
