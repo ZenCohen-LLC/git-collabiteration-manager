@@ -366,6 +366,15 @@ gcm --help
 gcm create --help
 ```
 
+### Claude Code Commands
+```bash
+# Start a new iteration with guided planning
+/iterate
+
+# Resume an existing iteration
+/resume-iteration
+```
+
 ## 🔧 Installation & Setup
 
 ### System Requirements
