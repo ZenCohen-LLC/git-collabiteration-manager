@@ -345,6 +345,7 @@ gcm share feature-name --title="PR Title"
 
 # Clean up when done
 gcm remove feature-name
+# Or use Claude: /remove-iteration
 ```
 
 ### Advanced Usage
@@ -373,6 +374,9 @@ gcm create --help
 
 # Resume an existing iteration
 /resume-iteration
+
+# Remove an iteration and clean up resources
+/remove-iteration
 ```
 
 ## 🔧 Installation & Setup
