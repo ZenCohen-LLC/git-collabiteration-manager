@@ -12,7 +12,9 @@ When a user says they want to start a new iteration, follow these steps:
 - Example: "What feature or problem will this iteration address?"
 
 ### 2. Directory Setup
-- The collabiteration tool creates a subdirectory in `.git-collabiterations/` 
+- The collabiteration tool creates an isolated instance using **git worktrees**
+- This is a complete, independent copy of your codebase in `.git-collabiterations/`
+- Each iteration is its own git worktree with separate working directory and branch
 - Use descriptive kebab-case naming (e.g., `custom-pacing-enhancements`, `user-auth-improvements`)
 - Example: `.git-collabiterations/custom-pacing-enhancements/`
 
@@ -56,11 +58,13 @@ All information gathered must be documented in the `ITERATION_PLAN.md` file as y
 ### 9. Execute Iteration Plan
 Once planning is complete and documented:
 - Create the collabiteration using `gcm create [iteration-name]`
+- This creates a new **git worktree** - a complete, isolated copy of your project
+- Each worktree has its own working directory, branch, and uncommitted changes
 - Set up the isolated environment with dedicated ports and database
 - Populate the iteration assistant with the full plan
 - Launch parallel agents for different priorities as needed
 - Track all changes and progress in the iteration assistant
-- Test thoroughly in the isolated environment
+- Test thoroughly in the isolated environment without affecting main codebase
 
 ### 10. Submit Work via Pull Request
 Once the iteration is complete and tested:

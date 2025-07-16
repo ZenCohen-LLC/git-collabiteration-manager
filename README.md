@@ -143,7 +143,9 @@ All of this is documented in an iteration plan as you go.
 **4. Environment Setup (Stage 1)**
 Once planning is complete, Claude will:
 - Create the collabiteration using `gcm create [iteration-name]`
-- Set up an isolated development environment
+- This creates a **git worktree** - an isolated, complete copy of your project
+- Each iteration gets its own branch, working directory, and uncommitted changes
+- Set up an isolated development environment with no impact on main codebase
 - Configure dedicated ports and database
 - Populate the iteration assistant with your plan
 - Verify everything is working
@@ -261,11 +263,16 @@ The collabiteration manager automatically detects your project and preserves all
 
 ## 💡 Key Features
 
-### 🔄 True Isolation
-- **Complete project copies** via git worktrees
+### 🔄 True Isolation via Git Worktrees
+- **Git worktrees** provide complete, isolated copies of your project
+- Each iteration is a separate worktree with its own:
+  - Working directory (full project copy)
+  - Git branch for changes
+  - Uncommitted modifications
+  - Build artifacts and dependencies
 - **Dedicated databases** for each collabiteration
 - **Isolated ports and services** - no conflicts
-- **Independent environments** - break nothing
+- **Independent environments** - break nothing in main codebase
 
 ### 🎯 Context Intelligence
 - **Auto-detects project type** and applies appropriate configuration
