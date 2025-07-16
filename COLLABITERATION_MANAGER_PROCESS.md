@@ -53,6 +53,24 @@ All information gathered must be documented in the `ITERATION_PLAN.md` file as y
 - Technical specifications
 - Testing requirements
 
+### 9. Execute Iteration Plan
+Once planning is complete and documented:
+- Create the collabiteration using `gcm create [iteration-name]`
+- Set up the isolated environment with dedicated ports and database
+- Populate the iteration assistant with the full plan
+- Launch parallel agents for different priorities as needed
+- Track all changes and progress in the iteration assistant
+- Test thoroughly in the isolated environment
+
+### 10. Submit Work via Pull Request
+Once the iteration is complete and tested:
+- Package up the iteration's git worktree
+- Use `gcm share [iteration-name] --title "Feature: [description]"`
+- This creates a PR to push changes to media-tool's GitHub repository
+- Include testing instructions and iteration metadata in PR description
+- Link to relevant Jira tickets and documentation
+- Request review from appropriate team members
+
 ## Standard Plan Structure
 
 Every iteration plan MUST start with:

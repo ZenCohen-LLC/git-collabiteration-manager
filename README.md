@@ -155,6 +155,23 @@ After setup verification:
 - Changes are tracked automatically in the iteration assistant
 - Progress is logged as work proceeds
 
+**6. Execute Iteration Plan**
+Once development begins:
+- Work in the isolated environment with full application functionality
+- Test changes with dedicated database and services
+- Make modifications without affecting main codebase
+- Verify all features work as expected
+- Run tests (unit, integration, and Playwright E2E)
+
+**7. Submit Work via Pull Request**
+When iteration is complete:
+- Use `gcm share [iteration-name] --title "Feature: Description"`
+- This packages the git worktree and creates a PR
+- PR is submitted to media-tool's GitHub repository
+- Includes testing instructions and iteration metadata
+- Links to Jira tickets and documentation
+- Ready for team review and merge
+
 #### What to Expect
 
 **Timeline:**
