@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
 const { program } = require('commander');
-const chalk = require('chalk');
+const chalk = require('chalk').default || require('chalk');
 const { WorktreeManager } = require('../dist/core/worktree-manager.js');
 
 const manager = new WorktreeManager();
 
 program
-  .name('git-iteration')
-  .description('Context-aware git worktree iteration manager')
+  .name('git-collabiteration')
+  .description('Context-aware git worktree collabiteration manager')
   .version('1.0.0');
 
 program
   .command('init')
-  .description('Initialize iteration management in current project')
+  .description('Initialize collabiteration management in current project')
   .action(async () => {
     try {
       const projectPath = process.cwd();
       const context = await manager.initializeProject(projectPath);
-      console.log(chalk.green('✅ Project initialized for iteration management'));
+      console.log(chalk.green('✅ Project initialized for collabiteration management'));
       console.log(chalk.blue(`📁 Detected context: ${context.name}`));
     } catch (error) {
       console.error(chalk.red('❌ Error:'), error.message);
@@ -28,7 +28,7 @@ program
 
 program
   .command('create <name>')
-  .description('Create new iteration with worktree')
+  .description('Create new collabiteration with worktree')
   .option('--from <branch>', 'Create from specific branch', 'main')
   .option('--description <desc>', 'Add description to iteration')
   .option('--auto-start', 'Automatically start iteration after creation')
@@ -41,7 +41,7 @@ program
         autoStart: options.autoStart
       });
       
-      console.log(chalk.green(`✅ Iteration '${name}' created successfully!`));
+      console.log(chalk.green(`✅ Collabiteration '${name}' created successfully!`));
     } catch (error) {
       console.error(chalk.red('❌ Error:'), error.message);
       process.exit(1);
@@ -50,19 +50,19 @@ program
 
 program
   .command('list')
-  .description('List all iterations for current project')
+  .description('List all collabiterations for current project')
   .action(async () => {
     try {
       const projectPath = process.cwd();
-      const iterations = manager.listIterations(projectPath);
+      const collabiterations = manager.listCollabiterations(projectPath);
       
-      if (iterations.length === 0) {
-        console.log(chalk.yellow('📝 No iterations found'));
+      if (collabiterations.length === 0) {
+        console.log(chalk.yellow('📝 No collabiterations found'));
         return;
       }
 
-      console.log(chalk.cyan('\n🌳 Iterations:'));
-      for (const iteration of iterations) {
+      console.log(chalk.cyan('\n🌳 Collabiterations:'));
+      for (const iteration of collabiterations) {
         const status = getStatusIcon(iteration.status);
         console.log(chalk.cyan(`\n${status} ${iteration.name}`));
         console.log(chalk.gray(`   Branch: ${iteration.branch}`));
@@ -89,7 +89,7 @@ program
 
 program
   .command('start <name>')
-  .description('Start iteration services')
+  .description('Start collabiteration services')
   .action(async (name) => {
     try {
       const projectPath = process.cwd();
@@ -102,7 +102,7 @@ program
 
 program
   .command('stop <name>')
-  .description('Stop iteration services')
+  .description('Stop collabiteration services')
   .action(async (name) => {
     try {
       const projectPath = process.cwd();
@@ -115,7 +115,7 @@ program
 
 program
   .command('share <name>')
-  .description('Share iteration via pull request')
+  .description('Share collabiteration via pull request')
   .option('--title <title>', 'Custom PR title')
   .option('--description <desc>', 'PR description')
   .action(async (name, options) => {
@@ -136,7 +136,7 @@ program
 
 program
   .command('remove <name>')
-  .description('Remove iteration and worktree')
+  .description('Remove collabiteration and worktree')
   .option('--force', 'Force removal without confirmation')
   .action(async (name, options) => {
     try {
@@ -150,15 +150,15 @@ program
 
 program
   .command('info <name>')
-  .description('Show detailed iteration information')
+  .description('Show detailed collabiteration information')
   .action(async (name) => {
     try {
       const projectPath = process.cwd();
-      const iterations = manager.listIterations(projectPath);
-      const iteration = iterations.find(iter => iter.name === name);
+      const collabiterations = manager.listCollabiterations(projectPath);
+      const iteration = collabiterations.find(iter => iter.name === name);
       
       if (!iteration) {
-        console.error(chalk.red(`❌ Iteration '${name}' not found`));
+        console.error(chalk.red(`❌ Collabiteration '${name}' not found`));
         process.exit(1);
       }
 
@@ -190,8 +190,8 @@ program
 
       console.log(chalk.cyan('\n📝 Quick Commands:'));
       console.log(chalk.gray(`   cd ${iteration.workspacePath}`));
-      console.log(chalk.gray('   bun run iteration:start'));
-      console.log(chalk.gray('   bun run iteration:stop'));
+      console.log(chalk.gray('   bun run collabiteration:start'));
+      console.log(chalk.gray('   bun run collabiteration:stop'));
 
     } catch (error) {
       console.error(chalk.red('❌ Error:'), error.message);

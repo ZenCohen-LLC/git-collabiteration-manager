@@ -1,6 +1,6 @@
-# Iteration: {iterationName}
+# Collabiteration: {collabiterationName}
 
-This PR contains the iteration work for **{iterationName}** on the Brkthru Media Tool.
+This PR contains the collabiteration work for **{collabiterationName}** on the Brkthru Media Tool.
 
 ## 🚀 Preview & Testing
 
@@ -10,21 +10,21 @@ This PR contains the iteration work for **{iterationName}** on the Brkthru Media
 
 ### Quick Start
 ```bash
-# Clone and setup iteration
-git checkout {iterationBranch}
+# Clone and setup collabiteration
+git checkout {collabiterationBranch}
 bun install
 
 # Start services  
-bun run iteration:start
+bun run collabiteration:start
 
 # Optional: Seed with demo data
-bun run iteration:seed:demo
+bun run collabiteration:seed:demo
 ```
 
-### Alternative Testing (Git Iteration Manager)
+### Alternative Testing (Git Collabiteration Manager)
 ```bash
-# Using the iteration manager
-git-iteration start {iterationName}
+# Using the collabiteration manager
+git-collabiteration start {collabiterationName}
 ```
 
 ## 🗂️ Project Context
@@ -38,10 +38,10 @@ git-iteration start {iterationName}
 - **Schema**: `{dbSchema}` (isolated from main database)
 - **Migrations**: Flyway-managed migrations in `db/migrations/`
 - **Seeding Options**:
-  - `bun run iteration:seed` - Development data (default)
-  - `bun run iteration:seed:demo` - Light demo data
-  - `bun run iteration:seed:presentation` - Rich presentation data
-  - `bun run iteration:seed:planning` - Planning stage examples
+  - `bun run collabiteration:seed` - Development data (default)
+  - `bun run collabiteration:seed:demo` - Light demo data
+  - `bun run collabiteration:seed:presentation` - Rich presentation data
+  - `bun run collabiteration:seed:planning` - Planning stage examples
 
 ## 🧪 Quality Checks
 
@@ -50,16 +50,16 @@ git-iteration start {iterationName}
 bun run quality:check
 
 # Individual checks
-bun run lint:iteration      # ESLint
-bun run typecheck:iteration # TypeScript
-bun run test:iteration      # Jest tests
+bun run lint:collabiteration      # ESLint
+bun run typecheck:collabiteration # TypeScript
+bun run test:collabiteration      # Jest tests
 ```
 
-## 📝 Iteration Metadata
+## 📝 Collabiteration Metadata
 
 - **Created**: {createdDate}
-- **Branch**: `{iterationBranch}`
-- **Iteration Manager**: git-iteration-manager v{version}
+- **Branch**: `{collabiterationBranch}`
+- **Collabiteration Manager**: git-collabiteration-manager v{version}
 - **Context**: media-tool (auto-detected)
 
 ## 🔍 Code Review Notes
@@ -82,6 +82,6 @@ bun run test:iteration      # Jest tests
 
 ---
 
-🤖 **Generated with [Git Iteration Manager](https://github.com/brkthru/git-iteration-manager)**
+🤖 **Generated with [Git Collabiteration Manager](https://github.com/brkthru/git-collabiteration-manager)**
 
-Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>
+Co-Authored-By: Git Collabiteration Manager <noreply@brkthru.com>

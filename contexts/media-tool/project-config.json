@@ -64,7 +64,7 @@
   "database": {
     "type": "postgresql",
     "basePort": 5452,
-    "schemaTemplate": "media_tool_{iteration}",
+    "schemaTemplate": "media_tool_{collabiteration}",
     "migrations": {
       "enabled": true,
       "path": "db/migrations",
@@ -87,12 +87,12 @@
       "type": "vite-react",
       "basePort": 3020,
       "directory": "packages/frontend",
-      "command": "env-cmd -f .env.iteration vite --port {port} --config packages/frontend/vite.config.mjs",
+      "command": "env-cmd -f .env.collabiteration vite --port {port} --config packages/frontend/vite.config.mjs",
       "buildCommand": "bun run build:frontend",
       "env": {
         "VITE_BACKEND_URL": "http://localhost:{backendPort}",
-        "ITERATION_NAME": "{iterationName}",
-        "ITERATION_BRANCH": "{iterationBranch}"
+        "COLLABITERATION_NAME": "{iterationName}",
+        "COLLABITERATION_BRANCH": "{iterationBranch}"
       },
       "dependencies": ["backend"]
     },
@@ -100,7 +100,7 @@
       "type": "bun-node",
       "basePort": 3021, 
       "directory": "packages/backend",
-      "command": "env-cmd -f .env.iteration bun packages/backend/src/index.ts --port {port} --watch | pino-pretty",
+      "command": "env-cmd -f .env.collabiteration bun packages/backend/src/index.ts --port {port} --watch | pino-pretty",
       "buildCommand": "bun run build:backend",
       "env": {
         "DB_HOST": "localhost",
@@ -110,21 +110,21 @@
         "DB_PASSWORD": "postgres",
         "FRONTEND_URL": "http://localhost:{frontendPort}",
         "NODE_ENV": "development",
-        "ITERATION_NAME": "{iterationName}",
-        "ITERATION_BRANCH": "{iterationBranch}"
+        "COLLABITERATION_NAME": "{iterationName}",
+        "COLLABITERATION_BRANCH": "{iterationBranch}"
       },
       "dependencies": ["database"]
     }
   },
   "iteration": {
-    "workspacePath": ".git-iterations",
-    "branchPrefix": "iteration/", 
+    "workspacePath": "../collabiterations",
+    "branchPrefix": "collabiteration/", 
     "autoSeeding": true,
     "autoInstall": true,
     "prTemplate": "media-tool-pr.md"
   },
   "customHooks": {
-    "postCreate": "setupMediaToolIteration",
+    "postCreate": "setupMediaToolCollabiteration",
     "preStart": "seedDatabase",
     "preShare": "runLintAndTypecheck"
   },

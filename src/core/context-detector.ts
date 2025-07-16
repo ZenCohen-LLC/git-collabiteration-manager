@@ -75,9 +75,10 @@ export class ContextDetector {
         if (this.isContextMatch(fingerprint, context)) {
           // Update metadata
           context.metadata = {
-            ...context.metadata,
+            created: context.metadata?.created || new Date().toISOString(),
             lastUsed: new Date().toISOString(),
-            usageCount: (context.metadata?.usageCount || 0) + 1
+            usageCount: (context.metadata?.usageCount || 0) + 1,
+            description: context.metadata?.description
           };
 
           return context;
