@@ -23,7 +23,7 @@
     "workflow",
     "branching"
   ],
-  "author": "Brkthru Development Team",
+  "author": "ZenCohen LLC",
   "license": "MIT",
   "dependencies": {
     "commander": "^11.1.0",
@@ -52,10 +52,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/brkthru/git-collabiteration-manager.git"
+    "url": "https://github.com/ZenCohen-LLC/git-collabiteration-manager.git"
   },
   "bugs": {
-    "url": "https://github.com/brkthru/git-collabiteration-manager/issues"
+    "url": "https://github.com/ZenCohen-LLC/git-collabiteration-manager/issues"
   },
-  "homepage": "https://github.com/brkthru/git-collabiteration-manager#readme"
+  "homepage": "https://github.com/ZenCohen-LLC/git-collabiteration-manager#readme"
 }
