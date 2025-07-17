@@ -204,18 +204,22 @@ When iteration is complete:
 # Install the tool
 npm install -g git-collabiteration-manager
 
-# Initialize your project (one-time)
+# Initialize Claude Code in your project
 cd /path/to/your-project
-gcm init
+claude init
 
-# Create exploration space for your team
-gcm create feature-exploration --description="Understanding the problem together"
+# Start a new iteration with Claude
+# In your conversation with Claude, type:
+/iterate
 
-# Start the isolated environment
-gcm start feature-exploration
-# → Full app running with dedicated database and ports
+# Claude will guide you through:
+# → Understanding the problem together
+# → Documenting who's affected and how
+# → Planning the technical approach
+# → Creating the iteration with full isolation
+# → Setting up database and ports
 
-# Prototype together
+# The iteration is created in:
 cd collabiterations/feature-exploration/
 # → Make changes, test flows, see complexity
 # → Align on approach before detailed work begins
@@ -225,16 +229,23 @@ cd collabiterations/feature-exploration/
 ### Enable Design-in-Code
 
 ```bash
-# Create design collabiteration
-gcm create workflow-redesign --description="Prototyping new user flow"
+# Start a design iteration with Claude
+# In your conversation with Claude, type:
+/iterate
 
-# Work with Claude Code in the collabiteration
-# → Reference Figma designs
-# → Implement directly in React
+# Tell Claude you want to prototype a new workflow
+# Provide:
+# → Figma design links
+# → Current workflow pain points
+# → Desired improvements
+
+# Claude creates the iteration and helps you:
+# → Implement designs directly in React
 # → Test with real data flows
-# → Iterate rapidly
+# → See calculation ripple effects
+# → Iterate rapidly with working code
 
-# Share working prototype
+# When ready, share via PR:
 gcm share workflow-redesign --title="New workflow prototype"
 # → Creates PR with working implementation
 # → Team can test and provide feedback
@@ -337,24 +348,31 @@ The collabiteration manager automatically detects your project and preserves all
 
 ### Basic Workflow
 ```bash
-# Initialize project (one time)
-gcm init
+# Initialize Claude Code (one time)
+claude init
 
-# Create new collabiteration
-gcm create feature-name --description="Brief description"
+# Start new iteration with Claude
+/iterate
+# → Claude guides you through planning
+# → Creates iteration automatically
+# → Sets up isolated environment
 
-# Start working
-gcm start feature-name
+# Resume existing iteration
+/resume-iteration
+# → Shows available iterations
+# → Loads context and continues work
 
 # Share your work via PR to main project
 gcm share feature-name --title="PR Title"
-# → Creates PR to media-tool GitHub
+# → Creates PR to project GitHub
 # → Team reviews like any feature branch
 # → Merges into main when approved
 
 # Clean up local iteration after merge
-gcm remove feature-name
-# Or use Claude: /remove-iteration
+/remove-iteration
+# → Claude helps remove iteration
+# → Frees ports and resources
+# → Cleans up git worktree
 ```
 
 ### Advanced Usage
@@ -467,11 +485,18 @@ gcm init
 Ready to eliminate thrash and enable true collaboration?
 
 ```bash
+# Install the tool
 npm install -g git-collabiteration-manager
+
+# Initialize Claude Code in your project
 cd your-project/
-gcm init
-gcm create first-exploration --description="Testing the waters"
-gcm start first-exploration
+claude init
+
+# Start your first iteration
+# In conversation with Claude:
+/iterate
+
+# Claude will guide you through the entire process
 ```
 
 Transform how your team builds software. Start today.
