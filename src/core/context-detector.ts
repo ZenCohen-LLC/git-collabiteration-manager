@@ -2,8 +2,11 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
 import { ProjectFingerprint, ProjectContext } from '../types/project-context.js';
+import { ConventionDetector } from './convention-detector.js';
 
 export class ContextDetector {
+  private conventionDetector = new ConventionDetector();
+
   /**
    * Analyze a project directory and create a fingerprint
    */
@@ -51,6 +54,9 @@ export class ContextDetector {
 
     // Analyze file patterns
     fingerprint.filePatterns = this.analyzeFilePatterns(projectPath);
+
+    // Detect repository conventions
+    fingerprint.conventions = await this.conventionDetector.detectConventions(projectPath);
 
     return fingerprint;
   }

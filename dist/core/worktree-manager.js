@@ -9,9 +9,11 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const chalk_1 = __importDefault(require("chalk"));
 const context_detector_js_1 = require("./context-detector.js");
+const convention_detector_js_1 = require("./convention-detector.js");
 const progress_tracker_js_1 = require("./progress-tracker.js");
 class WorktreeManager {
     contextDetector = new context_detector_js_1.ContextDetector();
+    conventionDetector = new convention_detector_js_1.ConventionDetector();
     progressTracker = new progress_tracker_js_1.ProgressTracker();
     globalConfigPath;
     contextStoragePath;
@@ -197,13 +199,19 @@ class WorktreeManager {
             // Commit any uncommitted changes
             try {
                 (0, child_process_1.execSync)('git add -A', { stdio: 'inherit' });
-                const commitMessage = `feat: iteration ${name} ready for review
-
-${options.description || 'Iteration work completed and ready for review.'}
-
-🤖 Generated with Git Iteration Manager
-
-Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+                // Format commit message according to conventions
+                let commitMessage;
+                const baseMessage = `iteration ${name} ready for review`;
+                const body = options.description || 'Iteration work completed and ready for review.';
+                if (collabiteration.projectContext.fingerprint.conventions?.commitMessages) {
+                    commitMessage = this.conventionDetector.formatCommitMessage(baseMessage, 'feat', collabiteration.projectContext.fingerprint.conventions.commitMessages);
+                    // Add body and co-author
+                    commitMessage += `\n\n${body}\n\n🤖 Generated with Git Iteration Manager\n\nCo-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+                }
+                else {
+                    // Default format
+                    commitMessage = `feat: ${baseMessage}\n\n${body}\n\n🤖 Generated with Git Iteration Manager\n\nCo-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+                }
                 (0, child_process_1.execSync)(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
             }
             catch {
@@ -314,7 +322,14 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
         }
     }
     createBranch(name, fromBranch, projectPath, context) {
-        const branchName = `${context.iteration.branchPrefix}${name}`;
+        // Use detected conventions or fall back to default
+        let branchName;
+        if (context.fingerprint.conventions?.branchNaming) {
+            branchName = this.conventionDetector.formatBranchName(name, context.fingerprint.conventions.branchNaming);
+        }
+        else {
+            branchName = `${context.iteration.branchPrefix}${name}`;
+        }
         const originalCwd = process.cwd();
         process.chdir(projectPath);
         try {

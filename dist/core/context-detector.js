@@ -4,7 +4,9 @@ exports.ContextDetector = void 0;
 const child_process_1 = require("child_process");
 const fs_1 = require("fs");
 const path_1 = require("path");
+const convention_detector_js_1 = require("./convention-detector.js");
 class ContextDetector {
+    conventionDetector = new convention_detector_js_1.ConventionDetector();
     /**
      * Analyze a project directory and create a fingerprint
      */
@@ -47,6 +49,8 @@ class ContextDetector {
         fingerprint.customMarkers = this.findCustomMarkers(projectPath);
         // Analyze file patterns
         fingerprint.filePatterns = this.analyzeFilePatterns(projectPath);
+        // Detect repository conventions
+        fingerprint.conventions = await this.conventionDetector.detectConventions(projectPath);
         return fingerprint;
     }
     /**

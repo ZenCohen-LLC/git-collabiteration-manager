@@ -1,6 +1,7 @@
 import { IterationInstance, ProjectContext } from '../types/project-context.js';
 export declare class WorktreeManager {
     private contextDetector;
+    private conventionDetector;
     private progressTracker;
     private globalConfigPath;
     private contextStoragePath;

@@ -6,6 +6,20 @@ export interface ProjectFingerprint {
     frameworks: string[];
     customMarkers: string[];
     filePatterns: Record<string, boolean>;
+    conventions?: RepoConventions;
+}
+export interface RepoConventions {
+    branchNaming?: {
+        categories: string[];
+        format: string;
+        examples: string[];
+    };
+    commitMessages?: {
+        format: string;
+        types: string[];
+        pattern?: string;
+        examples: string[];
+    };
 }
 export interface ServiceConfig {
     type: string;

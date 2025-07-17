@@ -3,11 +3,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'fs';
 import { join, resolve } from 'path';
 import chalk from 'chalk';
 import { ContextDetector } from './context-detector.js';
+import { ConventionDetector } from './convention-detector.js';
 import { ProgressTracker } from './progress-tracker.js';
 import { IterationInstance, ProjectContext, ServiceConfig } from '../types/project-context.js';
 
 export class WorktreeManager {
   private contextDetector = new ContextDetector();
+  private conventionDetector = new ConventionDetector();
   private progressTracker = new ProgressTracker();
   private globalConfigPath: string;
   private contextStoragePath: string;
@@ -247,13 +249,25 @@ export class WorktreeManager {
       // Commit any uncommitted changes
       try {
         execSync('git add -A', { stdio: 'inherit' });
-        const commitMessage = `feat: iteration ${name} ready for review
-
-${options.description || 'Iteration work completed and ready for review.'}
-
-🤖 Generated with Git Iteration Manager
-
-Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+        
+        // Format commit message according to conventions
+        let commitMessage: string;
+        const baseMessage = `iteration ${name} ready for review`;
+        const body = options.description || 'Iteration work completed and ready for review.';
+        
+        if (collabiteration.projectContext.fingerprint.conventions?.commitMessages) {
+          commitMessage = this.conventionDetector.formatCommitMessage(
+            baseMessage,
+            'feat',
+            collabiteration.projectContext.fingerprint.conventions.commitMessages
+          );
+          
+          // Add body and co-author
+          commitMessage += `\n\n${body}\n\n🤖 Generated with Git Iteration Manager\n\nCo-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+        } else {
+          // Default format
+          commitMessage = `feat: ${baseMessage}\n\n${body}\n\n🤖 Generated with Git Iteration Manager\n\nCo-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
+        }
 
         execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
       } catch {
@@ -381,7 +395,13 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
   }
 
   private createBranch(name: string, fromBranch: string, projectPath: string, context: ProjectContext): string {
-    const branchName = `${context.iteration.branchPrefix}${name}`;
+    // Use detected conventions or fall back to default
+    let branchName: string;
+    if (context.fingerprint.conventions?.branchNaming) {
+      branchName = this.conventionDetector.formatBranchName(name, context.fingerprint.conventions.branchNaming);
+    } else {
+      branchName = `${context.iteration.branchPrefix}${name}`;
+    }
     
     const originalCwd = process.cwd();
     process.chdir(projectPath);

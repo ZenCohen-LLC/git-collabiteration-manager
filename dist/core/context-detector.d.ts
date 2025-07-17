@@ -1,5 +1,6 @@
 import { ProjectFingerprint, ProjectContext } from '../types/project-context.js';
 export declare class ContextDetector {
+    private conventionDetector;
     /**
      * Analyze a project directory and create a fingerprint
      */
