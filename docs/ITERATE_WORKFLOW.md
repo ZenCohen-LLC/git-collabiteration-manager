@@ -79,6 +79,30 @@ After response:
    High-level description of how you want to solve this.
 ```
 
+After response:
+```
+5. **What part of the experience/codebase will this iteration involve?**
+   This helps me understand the existing code and document the context.
+   
+   Examples:
+   - "The line item pacing schedule panel"
+   - "Campaign dashboard and reporting"
+   - "User authentication flow"
+```
+
+Then I will:
+- Explore the mentioned code areas
+- Understand current implementation
+- Document existing patterns and structure
+- Add this context to your iteration plan
+
+Also checking for latest code:
+```
+Let me ensure we're working with the latest version...
+[Run: git status and git pull origin main if needed]
+✅ Repository is up to date
+```
+
 ### Step 4: Collect Resources
 ```
 Do you have any existing resources for this iteration?
@@ -131,6 +155,8 @@ The plan includes:
 - Complete technical specifications
 - Testing requirements with Playwright
 - Success criteria
+- **Code context**: Current implementation details and patterns
+- **File references**: Key files that will be modified
 
 The full plan is saved at: /collabiterations/[iteration-name]/ITERATION_PLAN.md
 

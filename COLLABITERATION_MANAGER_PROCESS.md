@@ -35,6 +35,15 @@ Prompt for and document:
 - **Problem**: What specific issue are they facing?
 - **Impact**: What is the business/time/efficiency impact?
 - **Solution**: What is the proposed solution approach?
+- **Code Areas**: Ask "What part of the experience/codebase will this iteration involve?"
+  - Use this to explore relevant files and understand current implementation
+  - Document the existing code structure and patterns
+  - Add this context to the iteration documentation
+
+**Before proceeding**: 
+- Check if you have the latest version of the repository
+- If not, pull the latest changes to ensure iteration starts from current code
+- Verify: `git pull origin main` to get latest updates
 
 ### 6. Collect Resources
 Prompt for:
