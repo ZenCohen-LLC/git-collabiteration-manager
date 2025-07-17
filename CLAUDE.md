@@ -2,6 +2,47 @@
 
 This is a **context-aware git worktree collabiteration management system** built to solve the challenge of managing isolated development environments for feature work while preserving rich project-specific configurations.
 
+## 🚀 Quick Start with Slash Commands
+
+**IMPORTANT: You must be in a project directory (not the git-collabiteration-manager directory) to use these commands.**
+
+### Custom Slash Commands
+
+When you see these commands in a conversation:
+
+#### /iterate
+Start a new collabiteration. When you see this command:
+1. Check that user is in a project directory (NOT in git-collabiteration-manager)
+2. If not, ask them to `cd` to their project directory first
+3. Gather requirements for the feature
+4. Create an iteration plan in `./collabiterations/[iteration-name]/`
+5. Guide through setting up an isolated development environment
+
+#### /resume-iteration  
+Resume work on an existing iteration. When you see this command:
+1. Check for a `collabiterations/` directory relative to current working directory
+2. List all subdirectories as available iterations
+3. Ask which iteration to resume
+4. Load the selected iteration's documentation (ITERATION_PLAN.md or similar)
+5. Continue work based on the iteration's current state
+
+Example response:
+```
+I'll check for available iterations to resume...
+
+Found collabiterations at: ./collabiterations/
+
+Available iterations:
+1. custom-pacing (has CUSTOM_PACING_ITERATION_PLAN.md)
+2. line-item-types (full project structure)
+3. tailwinds-refactor (full project structure)
+
+Which iteration would you like to resume?
+```
+
+#### /remove-iteration
+Clean up a completed iteration. This removes git worktrees and frees resources.
+
 ## 🎯 Purpose & Problem Solved
 
 ### The Challenge

@@ -113,10 +113,32 @@ gcm create ai-ideation-session
 
 ## 🛠️ Quick Start
 
+### Installation
+```bash
+npm install -g git-collabiteration-manager
+```
+
+### Using with Claude Code (Recommended)
+
+**⚠️ IMPORTANT: Always `cd` to your project directory first, NOT the git-collabiteration-manager directory!**
+
+```bash
+# First, go to YOUR PROJECT directory
+cd /path/to/your-project  # e.g., cd ~/projects/media-tool
+
+# Initialize the tool in your project
+git-collabiteration init
+
+# Then use Claude slash commands:
+/iterate              # Start new iteration with Claude's guidance
+/resume-iteration     # Continue existing iteration  
+/remove-iteration     # Clean up completed iteration
+```
+
 ### Working with the Collabiteration Tool - A User's Guide
 
 #### Starting a New Iteration
-When you tell Claude "I want to start a new iteration", here's what happens:
+When you use `/iterate` or tell Claude "I want to start a new iteration", here's what happens:
 
 **1. Initial Conversation**
 - Claude asks what feature or problem you want to work on

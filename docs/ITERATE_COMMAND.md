@@ -4,17 +4,23 @@
 The `/iterate` command is a Claude Code slash command that guides users through creating a new collabiteration following best practices.
 
 ## Usage
-Simply type `/iterate` in your conversation with Claude Code from any directory.
+Simply type `/iterate` in your conversation with Claude Code from your project directory.
+
+**⚠️ IMPORTANT:** You must be in your project directory (e.g., media-tool), NOT in the git-collabiteration-manager directory!
 
 ## What It Does
-1. Asks if you need an explanation of the collabiteration tool
-2. Gathers requirements about your feature/problem
-3. Documents who's affected, the problem, impact, and solution
-4. Collects any existing resources (Figma, docs, Jira tickets)
-5. Helps plan the technical approach
-6. Defines testing strategy
-7. Creates a complete iteration plan in `/collabiterations/[feature-name]/ITERATION_PLAN.md`
-8. Prepares for Stage 1 execution
+
+When you use this command, Claude will:
+
+1. **Check your current directory** - If you're in git-collabiteration-manager, ask you to cd to your project first
+2. Ask if you need an explanation of the collabiteration tool
+3. Gather requirements about your feature/problem
+4. Document who's affected, the problem, impact, and solution
+5. Collect any existing resources (Figma, docs, Jira tickets)
+6. Help plan the technical approach
+7. Define testing strategy
+8. Create a complete iteration plan in `./collabiterations/[feature-name]/ITERATION_PLAN.md`
+9. Prepare for Stage 1 execution
 
 ## Process Flow
 

@@ -4,7 +4,9 @@
 The `/remove-iteration` command allows users to cleanly remove an iteration, including stopping all services, freeing ports, cleaning up the git worktree, and updating the registry.
 
 ## Usage
-Simply type `/remove-iteration` in your conversation with Claude Code from any directory.
+Simply type `/remove-iteration` in your conversation with Claude Code from your project directory.
+
+**⚠️ IMPORTANT:** You must be in your project directory (e.g., media-tool), NOT in the git-collabiteration-manager directory!
 
 ## What It Does
 1. Lists all existing iterations from the registry
