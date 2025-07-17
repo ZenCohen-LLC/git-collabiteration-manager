@@ -60,12 +60,19 @@ Work iteratively with the user to:
 - Plan testing strategy
 - Set success criteria
 
-**IMPORTANT RULE**: Every implementation phase MUST include testing requirements:
-- Unit tests for new functions and components
-- Integration tests for feature workflows
-- Playwright E2E tests for user-facing functionality
-- Performance tests where applicable
-- Testing is not optional - it's part of the implementation
+**CRITICAL RULES**: 
+1. **Figma Integration**: If user provides Figma designs:
+   - Place links DIRECTLY in the relevant implementation step
+   - MUST access and review designs BEFORE implementing
+   - Include specific design requirements in each phase
+   - Never put designs in an appendix - they go with the implementation steps
+
+2. **Testing is Mandatory**: Every implementation phase MUST include:
+   - Unit tests for new functions and components
+   - Integration tests for feature workflows
+   - Playwright E2E tests for user-facing functionality
+   - Performance tests where applicable
+   - Testing is not optional - it's part of the implementation
 
 ### 8. Document Everything
 All information gathered must be documented in the `ITERATION_PLAN.md` file as you go, including:

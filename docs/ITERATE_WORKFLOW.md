@@ -123,6 +123,12 @@ Now let's plan the technical approach:
 3. What's the expected scope? (small/medium/large)
 ```
 
+**IMPORTANT**: When creating the implementation plan:
+- Figma designs will be placed DIRECTLY in the relevant implementation steps
+- I will access and review each design BEFORE implementing that feature
+- Each phase will include specific design requirements from Figma
+- Designs are implementation requirements, not reference materials
+
 ### Step 6: Testing Strategy
 ```
 Let's define the testing approach:
