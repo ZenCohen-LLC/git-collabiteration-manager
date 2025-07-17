@@ -12,16 +12,20 @@ First, I'll read:
 ```
 Let me check what iterations are available to resume...
 
-[Primary check - look for the collabiterations folder:]
-- First check: /collabiterations/ directory for iteration registry
-- List all subdirectories in /collabiterations/*
-- Each subdirectory represents an available iteration
-- Look for ITERATION_PLAN.md in each subdirectory
+[Check relative to current working directory:]
+- First check: ./collabiterations/ (in current directory)
+- Second check: ../collabiterations/ (in parent directory)
+- Third check: ./.git-collabiterations/ (legacy worktrees)
 
-[Secondary checks if needed:]
-- .git-collabiterations/* worktrees (for active development)
-- git branch -r | grep iteration/ (for git branches)
-- Any iteration registry JSON/database files
+For each location found:
+- List all subdirectories
+- Each subdirectory represents an available iteration
+- Look for ITERATION_PLAN.md or similar docs in each
+
+If no local directories found:
+- Check git branches: git branch -r | grep iteration/
+- Explain that no local iterations were found
+- Suggest using /iterate to create a new one
 ```
 
 ### Step 3: Present Options
@@ -184,18 +188,21 @@ Would you like to:
 ## Registry Location Priority
 
 When looking for iterations, check in this order:
-1. **`/collabiterations/` directory** (primary registry)
+1. **`./collabiterations/` directory** (relative to current directory)
    - Each subdirectory = one iteration
    - Contains ITERATION_PLAN.md
    - Main source of truth
    
-2. **`.git-collabiterations/`** (active worktrees)
-   - Currently active development
+2. **`../collabiterations/`** (parent directory)
+   - Useful when running from within a project subdirectory
    
-3. **Git branches** (`iteration/*`)
-   - Backup reference
+3. **`./.git-collabiterations/`** (legacy worktrees)
+   - Currently active development using git worktrees
+   
+4. **Git branches** (`iteration/*`)
+   - Backup reference when no local directories exist
 
-The `/collabiterations/` folder is the primary registry where all iterations are stored with their plans and documentation.
+The `collabiterations/` folder (relative to where you run the command) is the primary registry where all iterations are stored with their plans and documentation.
 
 ## Success Indicators
 
