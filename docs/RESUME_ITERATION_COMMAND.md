@@ -25,8 +25,12 @@ Simply type `/resume-iteration` in your conversation with Claude Code from any d
 - Review iteration workflow process
 
 ### Step 2: Show Available Iterations
+The command first checks the `/collabiterations/` directory for the iteration registry:
+
 ```
-Available iterations to resume:
+Checking /collabiterations/ directory for available iterations...
+
+Found 3 iterations:
 1. custom-pacing-enhancements - Monthly block generator for Account Managers
 2. user-auth-improvements - OAuth integration updates
 3. dashboard-redesign - New analytics dashboard
@@ -108,11 +112,21 @@ Ready to verify the iteration is running correctly. Shall we proceed with Stage 
 
 ## Implementation Details
 
-### Registry Locations
-- Check `.git-collabiterations/` for active worktrees
-- Read `/collabiterations/` for iteration plans
-- Review git branches with `iteration/` prefix
-- Check iteration assistant logs if available
+### Registry Locations (Priority Order)
+1. **Primary: `/collabiterations/` directory**
+   - Main registry for all iterations
+   - Each subdirectory = one iteration
+   - Contains ITERATION_PLAN.md and documentation
+   - First place to check always
+
+2. **Secondary: `.git-collabiterations/` worktrees**
+   - Active development environments
+   - May contain work-in-progress
+
+3. **Tertiary: Git branches `iteration/*`**
+   - Fallback for iterations tracked in git
+
+The `/collabiterations/` folder serves as the primary registry and should be checked first when discovering available iterations.
 
 ### Context Loading Priority
 1. ITERATION_PLAN.md (primary source)

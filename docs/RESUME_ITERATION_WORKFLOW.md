@@ -12,11 +12,16 @@ First, I'll read:
 ```
 Let me check what iterations are available to resume...
 
-[Check these locations:]
-- /collabiterations/* directories
-- .git-collabiterations/* worktrees  
-- git branch -r | grep iteration/
-- Any iteration registry files
+[Primary check - look for the collabiterations folder:]
+- First check: /collabiterations/ directory for iteration registry
+- List all subdirectories in /collabiterations/*
+- Each subdirectory represents an available iteration
+- Look for ITERATION_PLAN.md in each subdirectory
+
+[Secondary checks if needed:]
+- .git-collabiterations/* worktrees (for active development)
+- git branch -r | grep iteration/ (for git branches)
+- Any iteration registry JSON/database files
 ```
 
 ### Step 3: Present Options
@@ -175,6 +180,22 @@ Would you like to:
 2. Work around them
 3. Get more context
 ```
+
+## Registry Location Priority
+
+When looking for iterations, check in this order:
+1. **`/collabiterations/` directory** (primary registry)
+   - Each subdirectory = one iteration
+   - Contains ITERATION_PLAN.md
+   - Main source of truth
+   
+2. **`.git-collabiterations/`** (active worktrees)
+   - Currently active development
+   
+3. **Git branches** (`iteration/*`)
+   - Backup reference
+
+The `/collabiterations/` folder is the primary registry where all iterations are stored with their plans and documentation.
 
 ## Success Indicators
 
