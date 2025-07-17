@@ -501,6 +501,42 @@ claude init
 
 Transform how your team builds software. Start today.
 
+## 🔍 Known Project Setup Challenges
+
+### Media Tool (Brkthru)
+
+The Media Tool project has specific setup requirements that the tool handles automatically:
+
+**Common Issues:**
+1. **Authentication** - Requires `TEST_MODE=true` for local development
+2. **Environment Variables** - Needs ~30+ specific env vars to start
+3. **Database Schema** - Uses PostgreSQL schemas which affect data seeding
+4. **Cross-Iteration Imports** - Some files reference other iterations
+
+**Automated Fixes:**
+- Comprehensive `.env` template with all required variables
+- `TEST_MODE=true` set by default for iterations
+- Cross-iteration imports fixed automatically
+- Clear troubleshooting guide at `/contexts/media-tool/TROUBLESHOOTING.md`
+
+**Quick Test:**
+```bash
+# After creating a Media Tool iteration:
+curl http://localhost:3000  # Should load without auth
+curl http://localhost:3001/api/buildInfo  # Should return data
+```
+
+### Adding Your Project
+
+To add automated setup for your project:
+
+1. Create context in `/contexts/your-project/`
+2. Add comprehensive env template with ALL required variables
+3. Create post-create hook to fix common issues
+4. Document troubleshooting steps
+
+The goal: **New iterations should "just work" without manual setup!**
+
 ---
 
 *Built for teams who value alignment, rapid iteration, and getting the right thing built the first time.*
