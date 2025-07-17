@@ -1,15 +1,16 @@
 import { IterationInstance, ProjectContext } from '../types/project-context.js';
 export declare class WorktreeManager {
     private contextDetector;
+    private progressTracker;
     private globalConfigPath;
     private contextStoragePath;
     constructor(globalConfigPath?: string);
     /**
-     * Initialize iteration management in a project
+     * Initialize collabiteration management in a project
      */
     initializeProject(projectPath: string): Promise<ProjectContext>;
     /**
-     * Create a new iteration with worktree
+     * Create a new collabiteration with worktree
      */
     createIteration(name: string, projectPath: string, options?: {
         fromBranch?: string;
@@ -56,5 +57,17 @@ export declare class WorktreeManager {
     private waitForDatabase;
     private generatePRBody;
     private printIterationInfo;
+    /**
+     * Update progress for an iteration
+     */
+    updateProgress(name: string, projectPath: string, phaseId: string, taskId?: string, status?: 'pending' | 'in_progress' | 'completed' | 'blocked', notes?: string): Promise<void>;
+    /**
+     * Get progress report for an iteration
+     */
+    getProgressReport(name: string, projectPath: string): string;
+    /**
+     * Update registry with current iteration status
+     */
+    private updateRegistryStatus;
 }
 //# sourceMappingURL=worktree-manager.d.ts.map

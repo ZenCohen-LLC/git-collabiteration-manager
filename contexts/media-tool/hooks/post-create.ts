@@ -1,13 +1,13 @@
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync, writeFileSync, copyFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
 import chalk from 'chalk';
 
 /**
  * Media Tool post-create hook
  * Sets up the collabiteration environment with all necessary configurations
  */
-export async function setupMediaToolCollabiteration(
+export async function setupMediaToolIteration(
   collabiterationPath: string, 
   collabiterationName: string,
   context: any
@@ -49,11 +49,15 @@ export async function setupMediaToolCollabiteration(
     console.log(chalk.gray('   Waiting for database to be ready...'));
     execSync('sleep 10', { stdio: 'inherit' });
 
-    // 5. Setup for test mode authentication
+    // 5. Setup Iteration Assistant
+    console.log(chalk.blue('\n🤖 Setting up Iteration Assistant...'));
+    await setupIterationAssistant(collabiterationPath, collabiterationName, context);
+
+    // 6. Setup for test mode authentication
     console.log(chalk.blue('\n🔓 Setting up test mode authentication...'));
     console.log(chalk.green('✅ TEST_MODE=true is already set in .env'));
 
-    // 6. Show helpful information
+    // 7. Show helpful information
     console.log(chalk.green('\n✅ Media Tool collabiteration setup complete!\n'));
     console.log(chalk.cyan('🌐 Service URLs:'));
     console.log(chalk.white(`   Frontend: http://localhost:${context.services.frontend.actualPort || '3000'}`));
@@ -154,4 +158,321 @@ innerDb.$pool.options.schema = 'media_tool';`
   }
 
   console.log(chalk.green('✅ Fixed common iteration issues'));
+}
+
+/**
+ * Setup Iteration Assistant by copying files from line-item-types iteration template
+ */
+async function setupIterationAssistant(
+  collabiterationPath: string,
+  collabiterationName: string,
+  context: any
+): Promise<void> {
+  const sourceIterationPath = join(collabiterationPath, '../line-item-types');
+  
+  // Check if source iteration exists to copy from
+  if (!existsSync(sourceIterationPath)) {
+    console.log(chalk.yellow('⚠️  Source iteration (line-item-types) not found, skipping Iteration Assistant setup'));
+    console.log(chalk.gray('   The Iteration Assistant will need to be set up manually'));
+    return;
+  }
+
+  try {
+    console.log(chalk.gray('   Copying Iteration Assistant files from line-item-types template...'));
+
+    // Define files to copy for Iteration Assistant
+    const filesToCopy = [
+      // Frontend Components
+      'packages/frontend/src/components/iteration-modal.tsx',
+      'packages/frontend/src/components/annotations-panel.tsx',
+      
+      // Frontend Hooks
+      'packages/frontend/src/hooks/use-iteration-change-tracker.ts',
+      'packages/frontend/src/hooks/use-auto-change-tracking.ts',
+      
+      // Frontend Context
+      'packages/frontend/src/contexts/annotations-context.tsx',
+      
+      // Shared Types
+      'packages/shared/src/iteration-types.ts',
+      
+      // Backend Services
+      'packages/backend/src/services/iteration-metadata.ts',
+      'packages/backend/src/services/iteration-history.ts',
+      
+      // Scripts
+      'scripts/iteration-manager.js'
+    ];
+
+    // Copy each file
+    for (const file of filesToCopy) {
+      const sourcePath = join(sourceIterationPath, file);
+      const destPath = join(collabiterationPath, file);
+      
+      if (existsSync(sourcePath)) {
+        // Ensure destination directory exists
+        const destDir = dirname(destPath);
+        if (!existsSync(destDir)) {
+          mkdirSync(destDir, { recursive: true });
+        }
+        
+        // Copy file
+        copyFileSync(sourcePath, destPath);
+        console.log(chalk.gray(`     ✓ ${file}`));
+      } else {
+        console.log(chalk.yellow(`     ⚠️  ${file} (not found in source)`));
+      }
+    }
+
+    // Add TRPC endpoints to app-router.ts
+    await addIterationEndpoints(collabiterationPath);
+
+    // Create .collabiteration-meta directory
+    const metaDir = join(collabiterationPath, '.collabiteration-meta');
+    if (!existsSync(metaDir)) {
+      mkdirSync(metaDir, { recursive: true });
+      console.log(chalk.gray('     ✓ Created .collabiteration-meta directory'));
+    }
+
+    // Create initial iteration summary if it doesn't exist
+    await createIterationSummary(collabiterationPath, collabiterationName);
+
+    // Ensure clean iteration data
+    await ensureCleanIterationData(collabiterationPath, collabiterationName);
+
+    console.log(chalk.green('✅ Iteration Assistant setup complete!'));
+    console.log(chalk.cyan('🤖 Access the Iteration Assistant via the 🤖 icon in the frontend'));
+
+  } catch (error) {
+    console.error(chalk.red('❌ Failed to setup Iteration Assistant:'), error);
+    console.log(chalk.yellow('💡 You can manually copy the files from line-item-types iteration'));
+  }
+}
+
+/**
+ * Add iteration TRPC endpoints to app-router.ts
+ */
+async function addIterationEndpoints(collabiterationPath: string): Promise<void> {
+  const appRouterPath = join(collabiterationPath, 'packages/backend/src/api/trpc/app-router.ts');
+  
+  if (!existsSync(appRouterPath)) {
+    console.log(chalk.yellow('     ⚠️  app-router.ts not found, skipping TRPC endpoints'));
+    return;
+  }
+
+  let content = readFileSync(appRouterPath, 'utf8');
+  
+  // Check if iteration endpoints already exist
+  if (content.includes('iterationMetadata')) {
+    console.log(chalk.gray('     ✓ Iteration TRPC endpoints already exist'));
+    return;
+  }
+
+  // Add imports for iteration services
+  const importSection = `import { getIterationMetadata, updateIterationMetadata } from '../../services/iteration-metadata.js';
+import { getIterationHistory, addIterationHistoryEntry } from '../../services/iteration-history.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';`;
+
+  // Add imports after existing imports
+  content = content.replace(
+    /(import.*from.*;\n)+/,
+    `$&\n${importSection}\n`
+  );
+
+  // Add iteration endpoints to the router
+  const iterationEndpoints = `
+  // Iteration Assistant endpoints
+  iterationMetadata: t.procedure.query(async () => {
+    return getIterationMetadata();
+  }),
+  
+  updateIterationMetadata: t.procedure
+    .input(z.object({
+      purpose: z.string().optional(),
+      persona: z.array(z.string()).optional(),
+      userProblem: z.string().optional(),
+      iterationDescription: z.string().optional(),
+      status: z.enum(['Brainstorming', 'Iterating', 'Refining', 'Ready for UX Review', 'Ship it!']).optional(),
+      tags: z.array(z.string()).optional()
+    }))
+    .mutation(async (opts) => {
+      return updateIterationMetadata(opts.input);
+    }),
+
+  iterationHistory: t.procedure.query(async () => {
+    return getIterationHistory();
+  }),
+
+  addIterationHistoryEntry: t.procedure
+    .input(z.object({
+      type: z.enum(['change', 'note', 'milestone']),
+      category: z.enum(['feature', 'bugfix', 'refactor', 'experiment']).optional(),
+      description: z.string(),
+      details: z.string().optional(),
+      impact: z.enum(['high', 'medium', 'low']).optional(),
+      filesChanged: z.array(z.string()).optional(),
+      commitHash: z.string().optional()
+    }))
+    .mutation(async (opts) => {
+      return addIterationHistoryEntry(opts.input);
+    }),
+
+  iterationSummary: t.procedure.query(async () => {
+    try {
+      // Get iteration name from directory structure
+      const iterationName = require('path').basename(process.cwd().replace('/media-tool', ''));
+      const iterationBasePath = join(process.cwd(), '../'); // Go up from media-tool to iteration root
+      
+      const planFilePatterns = [
+        'ITERATION_SUMMARY.md',
+        'ITERATION_PLAN.md', 
+        'IMPLEMENTATION_PLAN.md',
+        '{NAME}_ITERATION_PLAN.md', // Will be replaced with actual iteration name
+        '{NAME}_IMPLEMENTATION_PLAN.md'
+      ];
+      
+      // Replace {NAME} with actual iteration name (uppercase and with underscores)
+      const formattedName = iterationName.toUpperCase().replace(/-/g, '_');
+      const expandedPatterns = planFilePatterns.map(pattern => 
+        pattern.replace('{NAME}', formattedName)
+      );
+      
+      // Try each pattern until we find a file
+      for (const pattern of expandedPatterns) {
+        const filePath = join(iterationBasePath, pattern);
+        try {
+          const content = readFileSync(filePath, 'utf8');
+          return { content, filename: pattern };
+        } catch {
+          continue;
+        }
+      }
+      
+      return { content: '# Iteration Plan\\n\\nNo iteration plan found.', filename: null };
+    } catch {
+      return { content: '# Iteration Plan\\n\\nError loading iteration plan.', filename: null };
+    }
+  }),`;
+
+  // Find the end of the existing router and add iteration endpoints
+  content = content.replace(
+    /(\s+)(})(\s*;?\s*$)/m,
+    `$1${iterationEndpoints}$1$2$3`
+  );
+
+  writeFileSync(appRouterPath, content);
+  console.log(chalk.gray('     ✓ Added iteration TRPC endpoints'));
+}
+
+/**
+ * Create initial ITERATION_SUMMARY.md if no plan file exists
+ */
+async function createIterationSummary(collabiterationPath: string, collabiterationName: string): Promise<void> {
+  // Check for existing plan files first
+  const formattedName = collabiterationName.toUpperCase().replace(/-/g, '_');
+  const planFilePatterns = [
+    'ITERATION_SUMMARY.md',
+    'ITERATION_PLAN.md', 
+    'IMPLEMENTATION_PLAN.md',
+    `${formattedName}_ITERATION_PLAN.md`,
+    `${formattedName}_IMPLEMENTATION_PLAN.md`
+  ];
+  
+  // Check if any plan file already exists
+  for (const pattern of planFilePatterns) {
+    const planPath = join(collabiterationPath, pattern);
+    if (existsSync(planPath)) {
+      console.log(chalk.gray(`     ✓ Found existing plan file: ${pattern}`));
+      console.log(chalk.cyan(`       This file will be displayed in the Iteration Assistant Plan tab`));
+      return;
+    }
+  }
+
+  // Create a basic summary if no plan file exists
+  const summaryPath = join(collabiterationPath, 'ITERATION_SUMMARY.md');
+  const summaryContent = `# ${collabiterationName.charAt(0).toUpperCase() + collabiterationName.slice(1).replace(/-/g, ' ')} Iteration
+
+## Overview
+This iteration was created to implement ${collabiterationName} functionality for the Fresh Bravo Media Tool.
+
+## Purpose
+*Describe the business purpose and goals of this iteration*
+
+## User Problem
+*What problem are we solving for users?*
+
+## Proposed Solution
+*High-level approach to solving the problem*
+
+## Implementation Plan
+
+### Phase 1: Setup and Planning
+- [x] Create iteration environment
+- [x] Set up Iteration Assistant
+- [ ] Define detailed requirements
+- [ ] Create implementation tasks
+
+### Phase 2: Development
+- [ ] Implement core functionality
+- [ ] Add tests
+- [ ] Update documentation
+
+### Phase 3: Testing and Review
+- [ ] Manual testing
+- [ ] Code review
+- [ ] Quality checks
+
+## Notes
+*Add any important notes, decisions, or considerations here*
+
+---
+*This iteration was created automatically by the git-collabiteration-manager*
+*The existing implementation plan will be displayed in the Iteration Assistant Plan tab*
+*Access the Iteration Assistant via the 🤖 icon in the frontend for more tools and tracking*
+`;
+
+  writeFileSync(summaryPath, summaryContent);
+  console.log(chalk.gray('     ✓ Created ITERATION_SUMMARY.md (no existing plan found)'));
+}
+
+/**
+ * Ensure clean iteration data for new iterations
+ */
+async function ensureCleanIterationData(collabiterationPath: string, collabiterationName: string): Promise<void> {
+  const metaDir = join(collabiterationPath, '.collabiteration-meta');
+  
+  // Create clean iteration metadata
+  const metadata = {
+    name: collabiterationName,
+    purpose: `Implement ${collabiterationName.replace(/-/g, ' ')} functionality`,
+    persona: ['Media Trader'],
+    userProblem: '',
+    iterationDescription: '',
+    status: 'Brainstorming',
+    lastModified: new Date().toISOString(),
+    tags: [collabiterationName],
+    frontend: 'http://localhost:3000',
+    backend: 'http://localhost:3001',
+    gitInfo: {
+      commits: 0,
+      currentBranch: `iteration/${collabiterationName}`
+    }
+  };
+  
+  const metadataPath = join(metaDir, 'iteration-metadata.json');
+  writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+  console.log(chalk.gray('     ✓ Created clean iteration metadata'));
+  
+  // Create empty iteration history
+  const history = {
+    entries: [],
+    lastUpdated: new Date().toISOString(),
+    totalChanges: 0,
+    summary: 'No changes recorded yet'
+  };
+  
+  const historyPath = join(metaDir, 'iteration-history.json');
+  writeFileSync(historyPath, JSON.stringify(history, null, 2));
+  console.log(chalk.gray('     ✓ Created empty iteration history'));
 }

@@ -64,6 +64,45 @@ export interface ProjectContext {
         description?: string;
     };
 }
+export interface ImplementationPhase {
+    id: string;
+    name: string;
+    description: string;
+    status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+    startedAt?: string;
+    completedAt?: string;
+    estimatedDays?: number;
+    actualDays?: number;
+    dependencies?: string[];
+    tasks: ImplementationTask[];
+}
+export interface ImplementationTask {
+    id: string;
+    name: string;
+    description: string;
+    status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+    assignee?: string;
+    startedAt?: string;
+    completedAt?: string;
+    estimatedHours?: number;
+    actualHours?: number;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    blockedReason?: string;
+}
+export interface IterationProgress {
+    currentPhase?: string;
+    overallProgress: number;
+    phases: ImplementationPhase[];
+    lastUpdated: string;
+    totalEstimatedDays?: number;
+    totalActualDays?: number;
+    milestones: {
+        name: string;
+        targetDate?: string;
+        completedDate?: string;
+        status: 'pending' | 'completed' | 'missed';
+    }[];
+}
 export interface IterationInstance {
     name: string;
     branch: string;
@@ -80,6 +119,7 @@ export interface IterationInstance {
     lastStarted?: string;
     prUrl?: string;
     status: 'created' | 'running' | 'stopped' | 'shared';
+    progress?: IterationProgress;
 }
 export interface GlobalConfig {
     defaultWorkspacePath: string;

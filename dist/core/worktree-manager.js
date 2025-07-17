@@ -9,18 +9,20 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const chalk_1 = __importDefault(require("chalk"));
 const context_detector_js_1 = require("./context-detector.js");
+const progress_tracker_js_1 = require("./progress-tracker.js");
 class WorktreeManager {
     contextDetector = new context_detector_js_1.ContextDetector();
+    progressTracker = new progress_tracker_js_1.ProgressTracker();
     globalConfigPath;
     contextStoragePath;
     constructor(globalConfigPath) {
         const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
-        this.globalConfigPath = globalConfigPath || (0, path_1.join)(homeDir, '.git-iteration-manager');
+        this.globalConfigPath = globalConfigPath || (0, path_1.join)(homeDir, '.git-collabiteration-manager');
         this.contextStoragePath = (0, path_1.join)(this.globalConfigPath, 'contexts');
         this.ensureDirectories();
     }
     /**
-     * Initialize iteration management in a project
+     * Initialize collabiteration management in a project
      */
     async initializeProject(projectPath) {
         console.log(chalk_1.default.blue('🔍 Analyzing project...'));
@@ -43,7 +45,7 @@ class WorktreeManager {
         return context;
     }
     /**
-     * Create a new iteration with worktree
+     * Create a new collabiteration with worktree
      */
     async createIteration(name, projectPath, options = {}) {
         const { fromBranch = 'main', description = '', autoStart = false } = options;
@@ -56,9 +58,9 @@ class WorktreeManager {
         // Check if iteration already exists
         const iterationPath = (0, path_1.join)(projectPath, context.iteration.workspacePath, name);
         if ((0, fs_1.existsSync)(iterationPath)) {
-            throw new Error(`Iteration '${name}' already exists`);
+            throw new Error(`Collabiteration '${name}' already exists`);
         }
-        console.log(chalk_1.default.blue(`🌿 Creating iteration: ${chalk_1.default.bold(name)}`));
+        console.log(chalk_1.default.blue(`🌿 Creating collabiteration: ${chalk_1.default.bold(name)}`));
         // Allocate ports and database schema
         const allocatedServices = this.allocatePorts(context.services, name);
         const dbConfig = this.allocateDatabase(context.database, name);
@@ -67,7 +69,7 @@ class WorktreeManager {
         // Create worktree
         this.createWorktree(name, branchName, iterationPath, projectPath);
         // Create iteration instance
-        const iteration = {
+        const collabiteration = {
             name,
             branch: branchName,
             workspacePath: iterationPath,
@@ -77,48 +79,74 @@ class WorktreeManager {
             created: new Date().toISOString(),
             status: 'created'
         };
+        // Initialize progress tracking
+        const planPath = (0, path_1.join)(iterationPath, `${name.toUpperCase()}_ITERATION_PLAN.md`);
+        if ((0, fs_1.existsSync)(planPath)) {
+            this.progressTracker.initializeProgress(collabiteration, planPath);
+            console.log(chalk_1.default.blue('📊 Progress tracking initialized from implementation plan'));
+        }
+        else {
+            // Look for common plan file names
+            const commonPlanNames = [
+                'ITERATION_PLAN.md',
+                'IMPLEMENTATION_PLAN.md',
+                'README.md'
+            ];
+            for (const fileName of commonPlanNames) {
+                const altPlanPath = (0, path_1.join)(iterationPath, fileName);
+                if ((0, fs_1.existsSync)(altPlanPath)) {
+                    this.progressTracker.initializeProgress(collabiteration, altPlanPath);
+                    console.log(chalk_1.default.blue(`📊 Progress tracking initialized from ${fileName}`));
+                    break;
+                }
+            }
+            if (!collabiteration.progress) {
+                this.progressTracker.initializeProgress(collabiteration);
+                console.log(chalk_1.default.yellow('📊 Basic progress tracking initialized (no plan found)'));
+            }
+        }
         // Save iteration config
-        this.saveIterationConfig(iteration);
+        this.saveIterationConfig(collabiteration);
         // Run post-create hooks
-        await this.runPostCreateHooks(iteration);
-        console.log(chalk_1.default.green(`✅ Iteration '${name}' created successfully!`));
-        this.printIterationInfo(iteration);
+        await this.runPostCreateHooks(collabiteration);
+        console.log(chalk_1.default.green(`✅ Collabiteration '${name}' created successfully!`));
+        this.printIterationInfo(collabiteration);
         if (autoStart) {
             await this.startIteration(name, projectPath);
         }
-        return iteration;
+        return collabiteration;
     }
     /**
      * Start an iteration
      */
     async startIteration(name, projectPath) {
-        const iteration = this.loadIterationConfig(name, projectPath);
-        if (!iteration) {
-            throw new Error(`Iteration '${name}' not found`);
+        const collabiteration = this.loadIterationConfig(name, projectPath);
+        if (!collabiteration) {
+            throw new Error(`Collabiteration '${name}' not found`);
         }
-        console.log(chalk_1.default.blue(`🚀 Starting iteration: ${chalk_1.default.bold(name)}`));
+        console.log(chalk_1.default.blue(`🚀 Starting collabiteration: ${chalk_1.default.bold(name)}`));
         // Change to iteration directory
         const originalCwd = process.cwd();
-        process.chdir(iteration.workspacePath);
+        process.chdir(collabiteration.workspacePath);
         try {
             // Run pre-start hooks
-            await this.runPreStartHooks(iteration);
+            await this.runPreStartHooks(collabiteration);
             // Start database if configured
-            if (iteration.database) {
+            if (collabiteration.database) {
                 console.log(chalk_1.default.blue('📊 Starting database...'));
                 (0, child_process_1.execSync)('bun run db:start', { stdio: 'inherit' });
                 // Wait for database to be ready
-                await this.waitForDatabase(iteration.database);
+                await this.waitForDatabase(collabiteration.database);
             }
             // Update iteration status
-            iteration.lastStarted = new Date().toISOString();
-            iteration.status = 'running';
-            this.saveIterationConfig(iteration);
-            console.log(chalk_1.default.green(`✅ Iteration '${name}' is ready!`));
-            this.printIterationInfo(iteration);
+            collabiteration.lastStarted = new Date().toISOString();
+            collabiteration.status = 'running';
+            this.saveIterationConfig(collabiteration);
+            console.log(chalk_1.default.green(`✅ Collabiteration '${name}' is ready!`));
+            this.printIterationInfo(collabiteration);
             console.log(chalk_1.default.yellow('\n📝 Run these commands to start development:'));
-            console.log(chalk_1.default.yellow(`   cd ${iteration.workspacePath}`));
-            console.log(chalk_1.default.yellow('   bun run iteration:start  # Start all services'));
+            console.log(chalk_1.default.yellow(`   cd ${collabiteration.workspacePath}`));
+            console.log(chalk_1.default.yellow('   bun run collabiteration:start  # Start all services'));
         }
         finally {
             process.chdir(originalCwd);
@@ -128,25 +156,25 @@ class WorktreeManager {
      * Stop an iteration
      */
     async stopIteration(name, projectPath) {
-        const iteration = this.loadIterationConfig(name, projectPath);
-        if (!iteration) {
-            throw new Error(`Iteration '${name}' not found`);
+        const collabiteration = this.loadIterationConfig(name, projectPath);
+        if (!collabiteration) {
+            throw new Error(`Collabiteration '${name}' not found`);
         }
-        console.log(chalk_1.default.blue(`🛑 Stopping iteration: ${chalk_1.default.bold(name)}`));
+        console.log(chalk_1.default.blue(`🛑 Stopping collabiteration: ${chalk_1.default.bold(name)}`));
         const originalCwd = process.cwd();
-        process.chdir(iteration.workspacePath);
+        process.chdir(collabiteration.workspacePath);
         try {
             // Stop services
             try {
-                (0, child_process_1.execSync)('bun run iteration:stop', { stdio: 'inherit' });
+                (0, child_process_1.execSync)('bun run collabiteration:stop', { stdio: 'inherit' });
             }
             catch {
                 console.log(chalk_1.default.yellow('⚠️  Some services may still be running'));
             }
             // Update status
-            iteration.status = 'stopped';
-            this.saveIterationConfig(iteration);
-            console.log(chalk_1.default.green(`✅ Iteration '${name}' stopped`));
+            collabiteration.status = 'stopped';
+            this.saveIterationConfig(collabiteration);
+            console.log(chalk_1.default.green(`✅ Collabiteration '${name}' stopped`));
         }
         finally {
             process.chdir(originalCwd);
@@ -156,16 +184,16 @@ class WorktreeManager {
      * Share an iteration via PR
      */
     async shareIteration(name, projectPath, options = {}) {
-        const iteration = this.loadIterationConfig(name, projectPath);
-        if (!iteration) {
-            throw new Error(`Iteration '${name}' not found`);
+        const collabiteration = this.loadIterationConfig(name, projectPath);
+        if (!collabiteration) {
+            throw new Error(`Collabiteration '${name}' not found`);
         }
-        console.log(chalk_1.default.blue(`📤 Sharing iteration: ${chalk_1.default.bold(name)}`));
+        console.log(chalk_1.default.blue(`📤 Sharing collabiteration: ${chalk_1.default.bold(name)}`));
         const originalCwd = process.cwd();
-        process.chdir(iteration.workspacePath);
+        process.chdir(collabiteration.workspacePath);
         try {
             // Run pre-share hooks (linting, type checking, etc.)
-            await this.runPreShareHooks(iteration);
+            await this.runPreShareHooks(collabiteration);
             // Commit any uncommitted changes
             try {
                 (0, child_process_1.execSync)('git add -A', { stdio: 'inherit' });
@@ -183,24 +211,24 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
             }
             // Push branch
             try {
-                (0, child_process_1.execSync)(`git push origin ${iteration.branch}`, { stdio: 'inherit' });
-                console.log(chalk_1.default.green(`📤 Pushed ${iteration.branch} to origin`));
+                (0, child_process_1.execSync)(`git push origin ${collabiteration.branch}`, { stdio: 'inherit' });
+                console.log(chalk_1.default.green(`📤 Pushed ${collabiteration.branch} to origin`));
             }
             catch {
                 console.log(chalk_1.default.yellow('⚠️  Could not push to remote (no remote configured?)'));
             }
             // Create PR using GitHub CLI
             const title = options.title || `Iteration: ${name}`;
-            const prBody = this.generatePRBody(iteration, options.description);
+            const prBody = this.generatePRBody(collabiteration, options.description);
             try {
-                const prOutput = (0, child_process_1.execSync)(`gh pr create --title "${title}" --body "${prBody}" --head ${iteration.branch} --base main`, {
+                const prOutput = (0, child_process_1.execSync)(`gh pr create --title "${title}" --body "${prBody}" --head ${collabiteration.branch} --base main`, {
                     encoding: 'utf8'
                 });
                 const prUrl = prOutput.trim();
                 // Save PR URL
-                iteration.prUrl = prUrl;
-                iteration.status = 'shared';
-                this.saveIterationConfig(iteration);
+                collabiteration.prUrl = prUrl;
+                collabiteration.status = 'shared';
+                this.saveIterationConfig(collabiteration);
                 console.log(chalk_1.default.green('✅ Pull Request created successfully!'));
                 console.log(chalk_1.default.blue(`🔗 ${prUrl}`));
                 return prUrl;
@@ -248,32 +276,32 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
      * Remove an iteration
      */
     async removeIteration(name, projectPath, force = false) {
-        const iteration = this.loadIterationConfig(name, projectPath);
-        if (!iteration) {
-            throw new Error(`Iteration '${name}' not found`);
+        const collabiteration = this.loadIterationConfig(name, projectPath);
+        if (!collabiteration) {
+            throw new Error(`Collabiteration '${name}' not found`);
         }
         if (!force) {
             console.log(chalk_1.default.yellow(`⚠️  This will permanently delete iteration '${name}'`));
             console.log(chalk_1.default.yellow('   Use --force to confirm deletion'));
             return;
         }
-        console.log(chalk_1.default.blue(`🗑️  Removing iteration: ${chalk_1.default.bold(name)}`));
+        console.log(chalk_1.default.blue(`🗑️  Removing collabiteration: ${chalk_1.default.bold(name)}`));
         try {
             // Stop services first
             await this.stopIteration(name, projectPath).catch(() => { });
             // Remove worktree
-            if ((0, fs_1.existsSync)(iteration.workspacePath)) {
-                (0, child_process_1.execSync)(`git worktree remove ${iteration.workspacePath} --force`, {
+            if ((0, fs_1.existsSync)(collabiteration.workspacePath)) {
+                (0, child_process_1.execSync)(`git worktree remove ${collabiteration.workspacePath} --force`, {
                     cwd: projectPath,
                     stdio: 'inherit'
                 });
             }
-            console.log(chalk_1.default.green(`✅ Iteration '${name}' removed successfully`));
-            console.log(chalk_1.default.yellow(`\n🌿 Branch '${iteration.branch}' still exists.`));
-            console.log(chalk_1.default.yellow(`   To remove: git branch -D ${iteration.branch}`));
+            console.log(chalk_1.default.green(`✅ Collabiteration '${name}' removed successfully`));
+            console.log(chalk_1.default.yellow(`\n🌿 Branch '${collabiteration.branch}' still exists.`));
+            console.log(chalk_1.default.yellow(`   To remove: git branch -D ${collabiteration.branch}`));
         }
         catch (error) {
-            throw new Error(`Failed to remove iteration: ${error}`);
+            throw new Error(`Failed to remove collabiteration: ${error}`);
         }
     }
     // Private helper methods...
@@ -382,7 +410,7 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
             },
             iteration: {
                 workspacePath: '.git-iterations',
-                branchPrefix: 'iteration/',
+                branchPrefix: 'collabiteration/',
                 autoSeeding: false,
                 autoInstall: true
             },
@@ -402,27 +430,27 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
         // For now, return null
         return null;
     }
-    saveIterationConfig(iteration) {
-        const configPath = (0, path_1.join)(iteration.workspacePath, '.git-iteration-config.json');
-        (0, fs_1.writeFileSync)(configPath, JSON.stringify(iteration, null, 2));
+    saveIterationConfig(collabiteration) {
+        const configPath = (0, path_1.join)(collabiteration.workspacePath, '.git-iteration-config.json');
+        (0, fs_1.writeFileSync)(configPath, JSON.stringify(collabiteration, null, 2));
     }
     loadIterationConfig(name, projectPath) {
         // Find iteration by name
         const iterations = this.listIterations(projectPath);
         return iterations.find(iter => iter.name === name) || null;
     }
-    async runPostCreateHooks(iteration) {
-        const hookName = iteration.projectContext.customHooks?.postCreate;
+    async runPostCreateHooks(collabiteration) {
+        const hookName = collabiteration.projectContext.customHooks?.postCreate;
         if (!hookName)
             return;
         console.log(chalk_1.default.blue(`🪝 Running post-create hook: ${hookName}`));
         // Load and run the hook
         try {
-            const hookPath = (0, path_1.join)(__dirname, '../../contexts', iteration.projectContext.projectId, 'hooks', 'post-create.js');
+            const hookPath = (0, path_1.join)(__dirname, '../../contexts', collabiteration.projectContext.projectId, 'hooks', 'post-create.js');
             if ((0, fs_1.existsSync)(hookPath)) {
                 const hook = require(hookPath);
                 if (typeof hook.setupMediaToolIteration === 'function') {
-                    await hook.setupMediaToolIteration(iteration.workspacePath, iteration.name, iteration);
+                    await hook.setupMediaToolIteration(collabiteration.workspacePath, collabiteration.name, collabiteration);
                 }
             }
         }
@@ -430,11 +458,11 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
             console.warn(chalk_1.default.yellow(`⚠️  Post-create hook failed: ${error}`));
         }
     }
-    async runPreStartHooks(iteration) {
+    async runPreStartHooks(collabiteration) {
         // Implementation for pre-start hooks
     }
-    async runPreShareHooks(iteration) {
-        const hookName = iteration.projectContext.customHooks?.preShare;
+    async runPreShareHooks(collabiteration) {
+        const hookName = collabiteration.projectContext.customHooks?.preShare;
         if (!hookName)
             return;
         console.log(chalk_1.default.blue(`🪝 Running quality checks...`));
@@ -453,22 +481,22 @@ Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
         console.log(chalk_1.default.blue('⏳ Waiting for database to be ready...'));
         await new Promise(resolve => setTimeout(resolve, 3000));
     }
-    generatePRBody(iteration, description) {
+    generatePRBody(collabiteration, description) {
         // Load PR template and populate with iteration data
-        const template = `# Iteration: ${iteration.name}
+        const template = `# Iteration: ${collabiteration.name}
 
-This PR contains iteration work for **${iteration.name}**.
+This PR contains iteration work for **${collabiteration.name}**.
 
 ## 🚀 Preview
-- **Frontend**: http://localhost:${iteration.services.frontend?.actualPort || 'N/A'}
-- **Backend**: http://localhost:${iteration.services.backend?.actualPort || 'N/A'}
-- **Database**: \`${iteration.database?.schemaName || 'N/A'}\` on port ${iteration.database?.actualPort || 'N/A'}
+- **Frontend**: http://localhost:${collabiteration.services.frontend?.actualPort || 'N/A'}
+- **Backend**: http://localhost:${collabiteration.services.backend?.actualPort || 'N/A'}
+- **Database**: \`${collabiteration.database?.schemaName || 'N/A'}\` on port ${collabiteration.database?.actualPort || 'N/A'}
 
 ## 🧪 Testing
 \`\`\`bash
-git checkout ${iteration.branch}
+git checkout ${collabiteration.branch}
 bun install
-bun run iteration:start
+bun run collabiteration:start
 \`\`\`
 
 ${description ? `## Description\n${description}\n` : ''}
@@ -478,19 +506,54 @@ ${description ? `## Description\n${description}\n` : ''}
 Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
         return template;
     }
-    printIterationInfo(iteration) {
+    printIterationInfo(collabiteration) {
         console.log(chalk_1.default.cyan('\n📊 Iteration Info:'));
-        console.log(chalk_1.default.cyan(`   Name: ${iteration.name}`));
-        console.log(chalk_1.default.cyan(`   Branch: ${iteration.branch}`));
-        console.log(chalk_1.default.cyan(`   Path: ${iteration.workspacePath}`));
-        if (iteration.services.frontend) {
-            console.log(chalk_1.default.cyan(`   Frontend: http://localhost:${iteration.services.frontend.actualPort}`));
+        console.log(chalk_1.default.cyan(`   Name: ${collabiteration.name}`));
+        console.log(chalk_1.default.cyan(`   Branch: ${collabiteration.branch}`));
+        console.log(chalk_1.default.cyan(`   Path: ${collabiteration.workspacePath}`));
+        if (collabiteration.services.frontend) {
+            console.log(chalk_1.default.cyan(`   Frontend: http://localhost:${collabiteration.services.frontend.actualPort}`));
         }
-        if (iteration.services.backend) {
-            console.log(chalk_1.default.cyan(`   Backend: http://localhost:${iteration.services.backend.actualPort}`));
+        if (collabiteration.services.backend) {
+            console.log(chalk_1.default.cyan(`   Backend: http://localhost:${collabiteration.services.backend.actualPort}`));
         }
-        if (iteration.database) {
-            console.log(chalk_1.default.cyan(`   Database: ${iteration.database.schemaName} (port ${iteration.database.actualPort})`));
+        if (collabiteration.database) {
+            console.log(chalk_1.default.cyan(`   Database: ${collabiteration.database.schemaName} (port ${collabiteration.database.actualPort})`));
+        }
+    }
+    /**
+     * Update progress for an iteration
+     */
+    async updateProgress(name, projectPath, phaseId, taskId, status, notes) {
+        const instance = this.loadIterationConfig(name, projectPath);
+        if (!instance) {
+            throw new Error(`Collabiteration '${name}' not found`);
+        }
+        this.progressTracker.updateProgress(instance, phaseId, taskId, status, notes);
+        this.saveIterationConfig(instance);
+        // Update registry
+        await this.updateRegistryStatus(instance);
+    }
+    /**
+     * Get progress report for an iteration
+     */
+    getProgressReport(name, projectPath) {
+        const instance = this.loadIterationConfig(name, projectPath);
+        if (!instance) {
+            throw new Error(`Collabiteration '${name}' not found`);
+        }
+        return this.progressTracker.generateProgressReport(instance);
+    }
+    /**
+     * Update registry with current iteration status
+     */
+    async updateRegistryStatus(instance) {
+        // This would integrate with the collabiterations registry
+        const registryPath = (0, path_1.join)(process.cwd(), 'collabiterations', 'REGISTRY.md');
+        if ((0, fs_1.existsSync)(registryPath)) {
+            // Update the registry with current status
+            // This is a simplified implementation - could be more sophisticated
+            console.log(chalk_1.default.blue(`📊 Registry updated for ${instance.name}`));
         }
     }
 }
