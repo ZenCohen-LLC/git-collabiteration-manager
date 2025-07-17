@@ -12,15 +12,19 @@ When a user says they want to start a new iteration, follow these steps:
 - Example: "What feature or problem will this iteration address?"
 
 ### 2. Directory Setup
-- The collabiteration tool creates an isolated instance using **git worktrees**
-- This is a complete, independent copy of your codebase in `.git-collabiterations/`
-- Each iteration is its own git worktree with separate working directory and branch
+- The collabiteration tool creates an isolated instance in `/collabiterations/[iteration-name]/`
+- This is a complete, independent copy of your codebase using **git worktrees**
+- Each iteration directory contains:
+  - `ITERATION_PLAN.md` - The iteration documentation
+  - Full project instance - Complete isolated codebase
+  - All project files - packages/, docker-compose.yml, etc.
 - Use descriptive kebab-case naming (e.g., `custom-pacing-enhancements`, `user-auth-improvements`)
-- Example: `.git-collabiterations/custom-pacing-enhancements/`
+- Example: `/collabiterations/custom-pacing-enhancements/`
 
 ### 3. Create Iteration Plan File
 - Create an `ITERATION_PLAN.md` file within the iteration directory
-- Path: `.git-collabiterations/[iteration-name]/ITERATION_PLAN.md`
+- Path: `/collabiterations/[iteration-name]/ITERATION_PLAN.md`
+- This file lives alongside the actual code in the same directory
 
 ### 4. Set Planning Mode
 - Switch to planning mode to focus on requirements gathering and design
@@ -75,12 +79,16 @@ Once planning is complete and documented:
 
 ### 10. Submit Work via Pull Request
 Once the iteration is complete and tested:
-- Package up the iteration's git worktree
 - Use `gcm share [iteration-name] --title "Feature: [description]"`
-- This creates a PR to push changes to media-tool's GitHub repository
-- Include testing instructions and iteration metadata in PR description
-- Link to relevant Jira tickets and documentation
-- Request review from appropriate team members
+- This creates a PR from your iteration to the media-tool GitHub repository
+- The PR includes:
+  - All code changes from the iteration
+  - Testing instructions from ITERATION_PLAN.md
+  - Iteration metadata (who, what, why, impact)
+  - Links to Jira tickets and Figma designs
+- Team reviews the PR like any other feature branch
+- Once merged, the iteration becomes part of media-tool
+- No separate iterations repository needed - everything flows through PRs
 
 ## Standard Plan Structure
 

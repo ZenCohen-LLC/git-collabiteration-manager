@@ -168,11 +168,15 @@ Once development begins:
 **7. Submit Work via Pull Request**
 When iteration is complete:
 - Use `gcm share [iteration-name] --title "Feature: Description"`
-- This packages the git worktree and creates a PR
-- PR is submitted to media-tool's GitHub repository
-- Includes testing instructions and iteration metadata
-- Links to Jira tickets and documentation
-- Ready for team review and merge
+- This creates a PR from your iteration branch to media-tool's main branch
+- The PR automatically includes:
+  - All code changes developed in isolation
+  - Summary from ITERATION_PLAN.md
+  - Testing instructions and success criteria
+  - Links to related Jira tickets and Figma designs
+- Team reviews the PR normally on GitHub
+- Once approved and merged, your iteration becomes part of media-tool
+- No separate iterations repository - just standard PR workflow
 
 #### What to Expect
 
@@ -212,9 +216,10 @@ gcm start feature-exploration
 # → Full app running with dedicated database and ports
 
 # Prototype together
-cd .git-collabiterations/feature-exploration/
+cd collabiterations/feature-exploration/
 # → Make changes, test flows, see complexity
 # → Align on approach before detailed work begins
+# → Documentation and code live together
 ```
 
 ### Enable Design-in-Code
@@ -265,14 +270,15 @@ The collabiteration manager automatically detects your project and preserves all
 
 ### 🔄 True Isolation via Git Worktrees
 - **Git worktrees** provide complete, isolated copies of your project
-- Each iteration is a separate worktree with its own:
-  - Working directory (full project copy)
-  - Git branch for changes
-  - Uncommitted modifications
-  - Build artifacts and dependencies
+- Each iteration lives in `/collabiterations/[iteration-name]/` containing:
+  - `ITERATION_PLAN.md` - Documentation and plan
+  - Complete project copy - All source code and configs
+  - Git branch for changes - Isolated from main
+  - Build artifacts and dependencies - Separate node_modules, etc.
 - **Dedicated databases** for each collabiteration
 - **Isolated ports and services** - no conflicts
 - **Independent environments** - break nothing in main codebase
+- **Self-contained** - Documentation and code live together
 
 ### 🎯 Context Intelligence
 - **Auto-detects project type** and applies appropriate configuration
@@ -340,10 +346,13 @@ gcm create feature-name --description="Brief description"
 # Start working
 gcm start feature-name
 
-# Share your work
+# Share your work via PR to main project
 gcm share feature-name --title="PR Title"
+# → Creates PR to media-tool GitHub
+# → Team reviews like any feature branch
+# → Merges into main when approved
 
-# Clean up when done
+# Clean up local iteration after merge
 gcm remove feature-name
 # Or use Claude: /remove-iteration
 ```
@@ -378,6 +387,44 @@ gcm create --help
 # Remove an iteration and clean up resources
 /remove-iteration
 ```
+
+## 📁 Repository Structure
+
+### Git Collabiteration Manager (This Tool)
+The `git-collabiteration-manager` repository contains:
+- The gcm tool itself
+- Command documentation (/iterate, /resume-iteration, /remove-iteration)
+- Templates and contexts for different project types
+- Generic, reusable across any project
+
+**This repository does NOT contain your iterations** - teammates can check out this tool without getting your specific work.
+
+### Your Project's Iterations
+In your project (e.g., media-tool), iterations live in:
+```
+/your-project/
+├── collabiterations/
+│   ├── custom-pacing/
+│   │   ├── ITERATION_PLAN.md      # Documentation
+│   │   ├── packages/              # Full project instance
+│   │   ├── docker-compose.yml     # Isolated services
+│   │   └── ...                    # Complete codebase
+│   ├── dashboard-redesign/
+│   │   ├── ITERATION_PLAN.md
+│   │   └── [full instance]
+│   └── feature-xyz/
+│       ├── ITERATION_PLAN.md
+│       └── [full instance]
+```
+
+Each iteration is self-contained with its documentation and code together.
+
+### Iteration Backup & Sharing Strategy
+- **Local Development**: Iterations live in `/collabiterations/` during development
+- **Backup/Sharing**: Use `gcm share` to create PRs to your project's GitHub
+- **No Separate Repo**: Iterations flow through standard PR review process
+- **After Merge**: Iteration code becomes part of main project history
+- **Clean Local**: Use `gcm remove` to clean up local iterations after merge
 
 ## 🔧 Installation & Setup
 
