@@ -115,7 +115,15 @@ gcm create ai-ideation-session
 
 ### Installation
 ```bash
-npm install -g git-collabiteration-manager
+# Install from GitHub (recommended)
+npm install -g https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
+
+# Or clone and install locally
+git clone https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
+cd git-collabiteration-manager
+npm install
+npm run build
+npm link
 ```
 
 ### Using with Claude Code (Recommended)
@@ -224,7 +232,7 @@ When iteration is complete:
 
 ```bash
 # Install the tool
-npm install -g git-collabiteration-manager
+npm install -g https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
 
 # Initialize Claude Code in your project
 cd /path/to/your-project
@@ -476,9 +484,11 @@ Each iteration is self-contained with its documentation and code together.
 
 ### Global Installation
 ```bash
-npm install -g git-collabiteration-manager
-# or
-yarn global add git-collabiteration-manager
+# Install from GitHub
+npm install -g https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
+
+# Or with yarn
+yarn global add https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
 ```
 
 ### Project Setup
@@ -508,7 +518,7 @@ Ready to eliminate thrash and enable true collaboration?
 
 ```bash
 # Install the tool
-npm install -g git-collabiteration-manager
+npm install -g https://github.com/ZenCohen-LLC/git-collabiteration-manager.git
 
 # Initialize Claude Code in your project
 cd your-project/
