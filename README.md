@@ -1,5 +1,7 @@
 # Git Collabiteration Manager
 
+> 🚨 **HEY DEVS: LOOK AT THE [SAAS_IMPLEMENTATION_PLAN.md](./SAAS_IMPLEMENTATION_PLAN.md) IN THIS REPO FOR THE PLAN TO MAKE THIS A SAAS PRODUCT** 🚨
+
 A collaborative development tool that eliminates downstream thrash and enables design-in-code workflows. Built for teams of Principals who need to align early, explore solutions together, and compress the design→development pipeline.
 
 ## 🎯 The Problems We Solve
@@ -568,6 +570,47 @@ To add automated setup for your project:
 4. Document troubleshooting steps
 
 The goal: **New iterations should "just work" without manual setup!**
+
+## 🚀 SaaS Transformation
+
+We're transforming Git Collabiteration Manager into a comprehensive SaaS platform! This will provide:
+
+- **Universal Integration**: Single script tag integration (like Intercom)
+- **Real-time Collaboration**: See what your team is working on live
+- **Centralized Management**: All iterations across all projects in one place
+- **Analytics & Insights**: Understand development patterns and bottlenecks
+- **Zero Configuration**: Works with any git repository automatically
+
+### Implementation Resources
+
+- **[SAAS_IMPLEMENTATION_PLAN.md](./SAAS_IMPLEMENTATION_PLAN.md)** - Complete implementation blueprint
+- **[SECURE_SETUP.md](./SECURE_SETUP.md)** - Security configuration guide
+- **[docs/agent-tasks/](./docs/agent-tasks/)** - Parallel implementation tasks
+- **[.env.example](./.env.example)** - Environment variable template
+
+### Quick Start for Contributors
+
+```bash
+# Set up your environment
+cp .env.example .env.local
+# Fill in your service credentials
+
+# Verify setup
+npm run verify-setup
+
+# Start development
+npm install
+npm run dev
+```
+
+### Services Required
+
+1. **Vercel** - Hosting and deployment
+2. **Supabase** - Database and real-time
+3. **Cloudflare** - CDN (optional)
+4. **Sentry** - Error tracking
+
+See [SECURE_SETUP.md](./SECURE_SETUP.md) for detailed setup instructions.
 
 ---
 
