@@ -71,6 +71,15 @@ export interface ProjectContext {
     iteration: IterationConfig;
     customHooks?: CustomHooks;
     templates?: Record<string, string>;
+    qualityChecks?: {
+        enabled?: boolean;
+        blockOnFailure?: boolean;
+        commands?: {
+            test?: string;
+            lint?: string;
+            typecheck?: string;
+        };
+    };
     metadata?: {
         created: string;
         lastUsed: string;
@@ -110,6 +119,7 @@ export interface IterationProgress {
     lastUpdated: string;
     totalEstimatedDays?: number;
     totalActualDays?: number;
+    blockers?: string[];
     milestones: {
         name: string;
         targetDate?: string;

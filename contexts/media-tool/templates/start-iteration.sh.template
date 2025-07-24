@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# {{ITERATION_NAME}} Iteration Startup Script
+# This script starts all services needed for the {{ITERATION_NAME}} iteration
+
+set -e
+
+echo "🚀 Starting {{ITERATION_NAME}} Iteration..."
+
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker is not running. Please start Docker Desktop first."
+    exit 1
+fi
+
+echo "✅ Docker is running"
+
+# Navigate to the correct directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR/.."
+
+echo "📁 Working directory: $(pwd)"
+
+# Start database and run migrations
+echo "🗄️  Starting database..."
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml up -d postgres flyway
+
+# Wait for database to be ready
+echo "⏳ Waiting for database to be ready..."
+sleep 5
+
+# Check if migrations completed
+if docker compose -f docker-compose.{{ITERATION_NAME}}.yml ps flyway | grep -q "Exit 0"; then
+    echo "✅ Database migrations completed"
+else
+    echo "⚠️  Database migrations may not have completed. Check logs with:"
+    echo "   docker compose -f docker-compose.{{ITERATION_NAME}}.yml logs flyway"
+fi
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+bun install
+
+# Start backend
+echo "🔧 Starting backend server..."
+DB_PORT={{DB_PORT}} PORT={{BACKEND_PORT}} bun run dev:backend > backend.log 2>&1 &
+BACKEND_PID=$!
+echo "   Backend PID: $BACKEND_PID"
+
+# Give backend time to start
+sleep 3
+
+# Start frontend
+echo "🎨 Starting frontend server..."
+VITE_API_URL=http://localhost:{{BACKEND_PORT}}/api VITE_PORT={{FRONTEND_PORT}} bun vite --port {{FRONTEND_PORT}} > frontend.log 2>&1 &
+FRONTEND_PID=$!
+echo "   Frontend PID: $FRONTEND_PID"
+
+# Give frontend time to start
+sleep 3
+
+# Health check
+echo ""
+echo "🏥 Running health checks..."
+
+if curl -s http://localhost:{{FRONTEND_PORT}}/ > /dev/null; then
+    echo "✅ Frontend is running at http://localhost:{{FRONTEND_PORT}}/"
+else
+    echo "❌ Frontend is not responding"
+fi
+
+if curl -s http://localhost:{{BACKEND_PORT}}/api/users/me > /dev/null; then
+    echo "✅ Backend API is running at http://localhost:{{BACKEND_PORT}}/api/"
+else
+    echo "❌ Backend API is not responding"
+fi
+
+if docker ps | grep -q {{ITERATION_NAME}}.*postgres; then
+    echo "✅ Database is running on port {{DB_PORT}}"
+else
+    echo "❌ Database is not running"
+fi
+
+echo ""
+echo "🎉 {{ITERATION_NAME}} iteration is ready!"
+echo ""
+echo "📌 Service URLs:"
+echo "   Frontend: http://localhost:{{FRONTEND_PORT}}/"
+echo "   Backend API: http://localhost:{{BACKEND_PORT}}/api/"
+echo "   Database: localhost:{{DB_PORT}}"
+echo ""
+echo "📝 Logs:"
+echo "   Backend: ./backend.log"
+echo "   Frontend: ./frontend.log"
+echo ""
+echo "💡 To stop all services, run: ./scripts/stop-iteration.sh"

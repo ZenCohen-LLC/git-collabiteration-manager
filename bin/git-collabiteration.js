@@ -2,6 +2,7 @@
 
 const { program } = require('commander');
 const chalk = require('chalk').default || require('chalk');
+const inquirer = require('inquirer');
 const { WorktreeManager } = require('../dist/core/worktree-manager.js');
 
 const manager = new WorktreeManager();
@@ -32,13 +33,37 @@ program
   .option('--from <branch>', 'Create from specific branch', 'main')
   .option('--description <desc>', 'Add description to iteration')
   .option('--auto-start', 'Automatically start iteration after creation')
+  .option('--ticket <ticket>', 'Jira ticket number (e.g., BRAV-1234)')
   .action(async (name, options) => {
     try {
       const projectPath = process.cwd();
+      
+      // Check if we need to prompt for Jira ticket
+      let jiraTicket = options.ticket;
+      if (!jiraTicket) {
+        // Check if project uses Jira naming convention
+        const context = await manager.initializeProject(projectPath);
+        if (context.fingerprint?.conventions?.branchNaming?.format?.includes('reference')) {
+          const answer = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'ticket',
+              message: 'Enter Jira ticket number (e.g., BRAV-1234) or press Enter to skip:',
+              validate: (input) => {
+                if (!input) return true; // Allow empty
+                return /^[A-Z]+-\d+$/.test(input) || 'Please enter a valid Jira ticket (e.g., BRAV-1234)';
+              }
+            }
+          ]);
+          jiraTicket = answer.ticket;
+        }
+      }
+      
       const iteration = await manager.createIteration(name, projectPath, {
         fromBranch: options.from,
         description: options.description,
-        autoStart: options.autoStart
+        autoStart: options.autoStart,
+        jiraTicket: jiraTicket
       });
       
       console.log(chalk.green(`✅ Collabiteration '${name}' created successfully!`));
@@ -118,12 +143,17 @@ program
   .description('Share collabiteration via pull request')
   .option('--title <title>', 'Custom PR title')
   .option('--description <desc>', 'PR description')
+  .option('--no-extract', 'Disable automatic content extraction from iteration files')
+  .option('--interactive', 'Interactive mode - prompts for missing information')
+  .option('--force', 'Skip quality checks and force PR creation')
   .action(async (name, options) => {
     try {
       const projectPath = process.cwd();
       const prUrl = await manager.shareIteration(name, projectPath, {
         title: options.title,
-        description: options.description
+        description: options.description,
+        extractContent: options.extract !== false,
+        interactive: options.interactive
       });
       
       console.log(chalk.green('✅ Iteration shared successfully!'));

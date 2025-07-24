@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# {{ITERATION_NAME}} Iteration Shutdown Script
+# This script stops all services for the {{ITERATION_NAME}} iteration
+
+echo "🛑 Stopping {{ITERATION_NAME}} Iteration..."
+
+# Navigate to the correct directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR/.."
+
+# Stop frontend
+echo "🎨 Stopping frontend..."
+pkill -f "vite.*{{FRONTEND_PORT}}" 2>/dev/null || echo "   Frontend was not running"
+
+# Stop backend
+echo "🔧 Stopping backend..."
+pkill -f "bun.*{{BACKEND_PORT}}" 2>/dev/null || echo "   Backend was not running"
+
+# Stop database
+echo "🗄️  Stopping database..."
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml down
+
+echo ""
+echo "✅ All services stopped"
+echo ""
+echo "💡 To restart, run: ./scripts/start-iteration.sh"

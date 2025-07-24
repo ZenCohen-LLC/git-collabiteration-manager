@@ -113,9 +113,25 @@ class ConventionDetector {
             examples: []
         };
         // Look for format patterns like <category>/<reference>/<description>
-        const formatMatch = text.match(/[`']?([<\[{]?\w+[>\]}]?\/[<\[{]?\w+[>\]}]?(?:\/[<\[{]?\w+[>\]}]?)?)[`']?/);
+        const formatMatch = text.match(/[`']?([<\[{]?\w+[>\]}]?\/[<\[{]?\w+[>\]}]?(?:\/[<\[{]?[\w-]+[>\]}]?)?)[`']?/);
         if (formatMatch) {
             branchNaming.format = formatMatch[1];
+        }
+        // Also check for patterns in code blocks
+        const codeBlockMatch = text.match(/```[^`]*?([a-z]+\/[a-z-/]+).*?```/);
+        if (!branchNaming.format && codeBlockMatch) {
+            // Extract pattern from example
+            const example = codeBlockMatch[1];
+            const parts = example.split('/');
+            if (parts.length >= 2) {
+                branchNaming.format = parts.map((_, i) => {
+                    if (i === 0)
+                        return '<category>';
+                    if (i === 1 && parts.length === 3)
+                        return '<reference>';
+                    return '<description>';
+                }).join('/');
+            }
         }
         // Look for category lists
         const categoryMatch = text.match(/(?:Categories|Types|Prefixes)[:\s]*\n?((?:[-*]\s*\w+\n?)+)/i);
@@ -260,9 +276,9 @@ class ConventionDetector {
     /**
      * Format branch name according to conventions
      */
-    formatBranchName(iterationName, conventions) {
+    formatBranchName(iterationName, conventions, jiraTicket) {
         if (!conventions || !conventions.format) {
-            return `iteration/${iterationName}`;
+            return jiraTicket ? `iteration/${jiraTicket}/${iterationName}` : `iteration/${iterationName}`;
         }
         // Default to 'feat' category for iterations
         let category = 'feat';
@@ -278,7 +294,7 @@ class ConventionDetector {
         let branchName = conventions.format;
         branchName = branchName.replace(/[<\[{]?category[>\]}]?/i, category);
         branchName = branchName.replace(/[<\[{]?type[>\]}]?/i, category);
-        branchName = branchName.replace(/[<\[{]?reference[>\]}]?/i, '');
+        branchName = branchName.replace(/[<\[{]?reference[>\]}]?/i, jiraTicket || '');
         branchName = branchName.replace(/[<\[{]?description[>\]}]?/i, iterationName);
         branchName = branchName.replace(/[<\[{]?name[>\]}]?/i, iterationName);
         // Clean up double slashes and leading/trailing slashes

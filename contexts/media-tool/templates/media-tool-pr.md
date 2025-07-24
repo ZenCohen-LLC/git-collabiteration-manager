@@ -1,5 +1,7 @@
 # Collabiteration: {collabiterationName}
 
+{summary}
+
 This PR contains the collabiteration work for **{collabiterationName}** on the Brkthru Media Tool.
 
 ## 🚀 Preview & Testing
@@ -62,9 +64,28 @@ bun run test:collabiteration      # Jest tests
 - **Collabiteration Manager**: git-collabiteration-manager v{version}
 - **Context**: media-tool (auto-detected)
 
+## 🔧 Implementation Details
+
+{implementation}
+
+## ✅ Success Criteria
+
+{successCriteria}
+
+## 🔗 Related Links
+
+**Jira Tickets**: {jiraTickets}  
+**Design Files**: {figmaLinks}
+
+## 📊 Progress Status
+
+- **Overall Progress**: {progressPercent}% complete
+- **Current Phase**: {currentPhase}
+
 ## 🔍 Code Review Notes
 
-<!-- Add specific areas for reviewers to focus on -->
+### Review Focus Areas
+{reviewFocusAreas}
 
 ### Key Changes
 - [ ] Frontend changes in `packages/frontend/`
@@ -73,12 +94,24 @@ bun run test:collabiteration      # Jest tests
 - [ ] Database migrations in `db/migrations/`
 - [ ] Configuration changes
 
+### Testing Steps
+{testingSteps}
+
+### Quality Check Results
+- {testsIcon} **Tests**: {testsStatus}
+- {lintingIcon} **Linting**: {lintingStatus}
+- {typeCheckIcon} **Type Check**: {typeCheckStatus}
+
 ### Testing Checklist
 - [ ] Frontend builds and runs on port {frontendPort}
 - [ ] Backend starts and connects to database
 - [ ] Database migrations apply successfully
 - [ ] All linting and type checks pass
 - [ ] No regression in existing functionality
+
+## 🏷️ Suggested Labels
+
+{suggestedLabels}
 
 ---
 

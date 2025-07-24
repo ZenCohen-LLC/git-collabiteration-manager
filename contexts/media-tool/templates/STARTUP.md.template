@@ -1,0 +1,108 @@
+# {{ITERATION_NAME}} Iteration - Startup Guide
+
+## Quick Start
+
+```bash
+# 1. Ensure Docker Desktop is running
+# 2. Navigate to iteration directory
+cd {{ITERATION_PATH}}
+
+# 3. Start all services
+./scripts/start-iteration.sh
+```
+
+## Manual Startup
+
+If the script doesn't work, follow these steps:
+
+### 1. Start Database
+```bash
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml up -d postgres flyway
+```
+
+### 2. Install Dependencies
+```bash
+bun install
+```
+
+### 3. Start Backend
+```bash
+DB_PORT={{DB_PORT}} PORT={{BACKEND_PORT}} bun run dev:backend > backend.log 2>&1 &
+```
+
+### 4. Start Frontend
+```bash
+VITE_API_URL=http://localhost:{{BACKEND_PORT}}/api VITE_PORT={{FRONTEND_PORT}} bun vite --port {{FRONTEND_PORT}} > frontend.log 2>&1 &
+```
+
+## Service URLs
+
+- **Frontend**: http://localhost:{{FRONTEND_PORT}}/
+- **Backend API**: http://localhost:{{BACKEND_PORT}}/api/
+- **Database**: localhost:{{DB_PORT}} (PostgreSQL)
+
+## Port Configuration
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| Frontend | {{FRONTEND_PORT}} | Web UI |
+| Backend | {{BACKEND_PORT}} | API Server |
+| Database | {{DB_PORT}} | PostgreSQL |
+
+## Health Check
+
+```bash
+# Check if services are running
+curl -s http://localhost:{{FRONTEND_PORT}}/ > /dev/null && echo "✅ Frontend is running" || echo "❌ Frontend is not running"
+curl -s http://localhost:{{BACKEND_PORT}}/api/users/me > /dev/null && echo "✅ Backend is running" || echo "❌ Backend is not running"
+docker ps | grep -q {{ITERATION_NAME}}.*postgres && echo "✅ Database is running" || echo "❌ Database is not running"
+```
+
+## Troubleshooting
+
+### Docker not running
+1. Start Docker Desktop application
+2. Wait for it to fully initialize
+3. Retry the startup commands
+
+### Port conflicts
+If you see "address already in use" errors:
+```bash
+# Find and kill processes on conflicting ports
+lsof -ti:{{FRONTEND_PORT}} | xargs kill -9
+lsof -ti:{{BACKEND_PORT}} | xargs kill -9
+lsof -ti:{{DB_PORT}} | xargs kill -9
+```
+
+### Database connection issues
+```bash
+# Check database logs
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml logs postgres
+
+# Restart database
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml restart postgres
+```
+
+## Shutdown
+
+```bash
+# Stop all services
+./scripts/stop-iteration.sh
+
+# Or manually:
+pkill -f "vite.*{{FRONTEND_PORT}}"
+pkill -f "bun.*{{BACKEND_PORT}}"
+docker compose -f docker-compose.{{ITERATION_NAME}}.yml down
+```
+
+## Implementation Status
+
+**Created**: {{CREATED_DATE}}
+**Last Updated**: {{UPDATED_DATE}}
+**Status**: {{STATUS}}
+
+### Features Implemented
+{{FEATURES}}
+
+### Known Issues
+{{ISSUES}}

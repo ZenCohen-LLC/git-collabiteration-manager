@@ -11,10 +11,12 @@ const chalk_1 = __importDefault(require("chalk"));
 const context_detector_js_1 = require("./context-detector.js");
 const convention_detector_js_1 = require("./convention-detector.js");
 const progress_tracker_js_1 = require("./progress-tracker.js");
+const pr_content_extractor_js_1 = require("./pr-content-extractor.js");
 class WorktreeManager {
     contextDetector = new context_detector_js_1.ContextDetector();
     conventionDetector = new convention_detector_js_1.ConventionDetector();
     progressTracker = new progress_tracker_js_1.ProgressTracker();
+    prContentExtractor = new pr_content_extractor_js_1.PRContentExtractor();
     globalConfigPath;
     contextStoragePath;
     constructor(globalConfigPath) {
@@ -50,7 +52,7 @@ class WorktreeManager {
      * Create a new collabiteration with worktree
      */
     async createIteration(name, projectPath, options = {}) {
-        const { fromBranch = 'main', description = '', autoStart = false } = options;
+        const { fromBranch = 'main', description = '', autoStart = false, jiraTicket } = options;
         // Validate name
         if (!/^[a-z0-9-]+$/.test(name)) {
             throw new Error('Name must contain only lowercase letters, numbers, and hyphens');
@@ -67,7 +69,7 @@ class WorktreeManager {
         const allocatedServices = this.allocatePorts(context.services, name);
         const dbConfig = this.allocateDatabase(context.database, name);
         // Create branch
-        const branchName = this.createBranch(name, fromBranch, projectPath, context);
+        const branchName = this.createBranch(name, fromBranch, projectPath, context, jiraTicket);
         // Create worktree
         this.createWorktree(name, branchName, iterationPath, projectPath);
         // Create iteration instance
@@ -195,7 +197,13 @@ class WorktreeManager {
         process.chdir(collabiteration.workspacePath);
         try {
             // Run pre-share hooks (linting, type checking, etc.)
-            await this.runPreShareHooks(collabiteration);
+            const qualityResults = await this.runPreShareHooks(collabiteration);
+            // Build PR context with extracted content
+            const prContext = await this.buildEnhancedPRContext(collabiteration, options);
+            // Add quality check results to PR context
+            prContext.testsStatus = qualityResults.tests;
+            prContext.lintingStatus = qualityResults.linting;
+            prContext.typeCheckStatus = qualityResults.typeCheck;
             // Commit any uncommitted changes
             try {
                 (0, child_process_1.execSync)('git add -A', { stdio: 'inherit' });
@@ -226,8 +234,8 @@ class WorktreeManager {
                 console.log(chalk_1.default.yellow('⚠️  Could not push to remote (no remote configured?)'));
             }
             // Create PR using GitHub CLI
-            const title = options.title || `Iteration: ${name}`;
-            const prBody = this.generatePRBody(collabiteration, options.description);
+            const title = prContext.title;
+            const prBody = await this.generateEnhancedPRBody(collabiteration, prContext);
             try {
                 const prOutput = (0, child_process_1.execSync)(`gh pr create --title "${title}" --body "${prBody}" --head ${collabiteration.branch} --base main`, {
                     encoding: 'utf8'
@@ -321,11 +329,15 @@ class WorktreeManager {
             (0, fs_1.mkdirSync)(this.contextStoragePath, { recursive: true });
         }
     }
-    createBranch(name, fromBranch, projectPath, context) {
+    createBranch(name, fromBranch, projectPath, context, jiraTicket) {
         // Use detected conventions or fall back to default
         let branchName;
         if (context.fingerprint.conventions?.branchNaming) {
-            branchName = this.conventionDetector.formatBranchName(name, context.fingerprint.conventions.branchNaming);
+            branchName = this.conventionDetector.formatBranchName(name, context.fingerprint.conventions.branchNaming, jiraTicket);
+        }
+        else if (jiraTicket) {
+            // If Jira ticket is provided, use it in branch name
+            branchName = `${context.iteration.branchPrefix}${jiraTicket}/${name}`;
         }
         else {
             branchName = `${context.iteration.branchPrefix}${name}`;
@@ -477,19 +489,29 @@ class WorktreeManager {
         // Implementation for pre-start hooks
     }
     async runPreShareHooks(collabiteration) {
-        const hookName = collabiteration.projectContext.customHooks?.preShare;
-        if (!hookName)
-            return;
-        console.log(chalk_1.default.blue(`🪝 Running quality checks...`));
-        try {
-            // Run quality checks
-            (0, child_process_1.execSync)('bun run quality:check', { stdio: 'inherit' });
-            console.log(chalk_1.default.green('✅ Quality checks passed'));
+        console.log(chalk_1.default.blue(`🪝 Running pre-share quality checks...`));
+        const results = await this.runQualityChecks(collabiteration);
+        // Check if we should block on failures
+        const blockOnFailure = collabiteration.projectContext.qualityChecks?.blockOnFailure !== false;
+        if (blockOnFailure) {
+            const failures = [];
+            if (results.tests && !results.tests.passed) {
+                failures.push('Tests failed');
+            }
+            if (results.linting && !results.linting.passed) {
+                failures.push('Linting failed');
+            }
+            if (results.typeCheck && !results.typeCheck.passed) {
+                failures.push('Type checking failed');
+            }
+            if (failures.length > 0) {
+                console.error(chalk_1.default.red('❌ Quality checks failed:'));
+                failures.forEach(f => console.error(chalk_1.default.red(`   - ${f}`)));
+                throw new Error('Quality checks failed. Fix issues before sharing or use --force to bypass.');
+            }
         }
-        catch (error) {
-            console.warn(chalk_1.default.yellow(`⚠️  Quality checks failed: ${error}`));
-            throw new Error('Quality checks failed. Fix issues before sharing.');
-        }
+        console.log(chalk_1.default.green('✅ Pre-share checks completed'));
+        return results;
     }
     async waitForDatabase(dbConfig) {
         // Wait for database to be ready
@@ -520,6 +542,295 @@ ${description ? `## Description\n${description}\n` : ''}
 
 Co-Authored-By: Git Iteration Manager <noreply@brkthru.com>`;
         return template;
+    }
+    /**
+     * Build enhanced PR context with extracted content
+     */
+    async buildEnhancedPRContext(collabiteration, options) {
+        // Extract content if enabled (default: true)
+        const shouldExtract = options.extractContent !== false;
+        if (shouldExtract) {
+            console.log(chalk_1.default.blue('📄 Extracting content from iteration files...'));
+            return await this.prContentExtractor.buildPRContext(collabiteration, options);
+        }
+        // Fallback to basic context
+        return {
+            title: options.title || `Iteration: ${collabiteration.name}`,
+            description: options.description
+        };
+    }
+    /**
+     * Generate enhanced PR body with rich content
+     */
+    async generateEnhancedPRBody(collabiteration, prContext) {
+        // Check if we should use a project-specific template
+        const templatePath = this.findPRTemplate(collabiteration);
+        if (templatePath) {
+            return this.renderPRTemplate(templatePath, collabiteration, prContext);
+        }
+        // Build enhanced PR body
+        let body = `# ${prContext.title}\n\n`;
+        // Summary section
+        if (prContext.iterationSummary) {
+            body += `## 📝 Summary\n${prContext.iterationSummary}\n\n`;
+        }
+        else if (prContext.description) {
+            body += `${prContext.description}\n\n`;
+        }
+        // Implementation details
+        if (prContext.implementationDetails && prContext.implementationDetails.length > 0) {
+            body += `## 🔧 Implementation\n`;
+            prContext.implementationDetails.forEach(detail => {
+                body += `- ${detail}\n`;
+            });
+            body += '\n';
+        }
+        // Preview section
+        body += `## 🚀 Preview & Testing\n`;
+        body += `- **Frontend**: http://localhost:${collabiteration.services.frontend?.actualPort || 'N/A'}\n`;
+        body += `- **Backend**: http://localhost:${collabiteration.services.backend?.actualPort || 'N/A'}\n`;
+        body += `- **Database**: \`${collabiteration.database?.schemaName || 'N/A'}\` on port ${collabiteration.database?.actualPort || 'N/A'}\n\n`;
+        // Testing instructions
+        body += `### Quick Start\n`;
+        body += `\`\`\`bash\n`;
+        body += `git checkout ${collabiteration.branch}\n`;
+        body += `bun install\n`;
+        body += `bun run collabiteration:start\n`;
+        body += `\`\`\`\n\n`;
+        if (prContext.testingInstructions && prContext.testingInstructions.length > 0) {
+            body += `### Testing Steps\n`;
+            prContext.testingInstructions.forEach((instruction, index) => {
+                body += `${index + 1}. ${instruction}\n`;
+            });
+            body += '\n';
+        }
+        // Success criteria
+        if (prContext.successCriteria && prContext.successCriteria.length > 0) {
+            body += `## ✅ Success Criteria\n`;
+            prContext.successCriteria.forEach(criterion => {
+                body += `- [ ] ${criterion}\n`;
+            });
+            body += '\n';
+        }
+        // Progress status
+        if (prContext.progressStatus) {
+            body += `## 📊 Progress\n`;
+            body += `- Overall: ${prContext.progressStatus.overallProgress}% complete\n`;
+            body += `- Phases: ${prContext.progressStatus.completedPhases}/${prContext.progressStatus.totalPhases} completed\n`;
+            if (prContext.progressStatus.currentPhase) {
+                body += `- Current: ${prContext.progressStatus.currentPhase}\n`;
+            }
+            if (prContext.progressStatus.blockers && prContext.progressStatus.blockers.length > 0) {
+                body += `\n### ⚠️ Blockers\n`;
+                prContext.progressStatus.blockers.forEach(blocker => {
+                    body += `- ${blocker}\n`;
+                });
+            }
+            body += '\n';
+        }
+        // Code changes summary
+        if (prContext.filesChanged && prContext.filesChanged.length > 0) {
+            body += `## 📁 Changes\n`;
+            body += `- **Files changed**: ${prContext.filesChanged.length}\n`;
+            body += `- **Lines added**: ${prContext.additions || 0}\n`;
+            body += `- **Lines deleted**: ${prContext.deletions || 0}\n`;
+            if (prContext.reviewFocusAreas && prContext.reviewFocusAreas.length > 0) {
+                body += `\n### 🔍 Review Focus Areas\n`;
+                prContext.reviewFocusAreas.forEach(area => {
+                    body += `- ${area}\n`;
+                });
+            }
+            body += '\n';
+        }
+        // Related links
+        if ((prContext.jiraTickets && prContext.jiraTickets.length > 0) ||
+            (prContext.figmaLinks && prContext.figmaLinks.length > 0)) {
+            body += `## 🔗 Related Links\n`;
+            if (prContext.jiraTickets && prContext.jiraTickets.length > 0) {
+                body += `### Jira Tickets\n`;
+                prContext.jiraTickets.forEach(ticket => {
+                    body += `- ${ticket}\n`;
+                });
+            }
+            if (prContext.figmaLinks && prContext.figmaLinks.length > 0) {
+                body += `### Design Files\n`;
+                prContext.figmaLinks.forEach(link => {
+                    body += `- ${link}\n`;
+                });
+            }
+            body += '\n';
+        }
+        // Quality checks section
+        if (prContext.testsStatus || prContext.lintingStatus || prContext.typeCheckStatus) {
+            body += `## 🧪 Quality Checks\n`;
+            if (prContext.testsStatus) {
+                const icon = prContext.testsStatus.passed ? '✅' : '❌';
+                body += `- ${icon} Tests: ${prContext.testsStatus.passed ? 'Passed' : 'Failed'}`;
+                if (prContext.testsStatus.totalTests) {
+                    body += ` (${prContext.testsStatus.passedTests}/${prContext.testsStatus.totalTests})`;
+                }
+                body += '\n';
+            }
+            if (prContext.lintingStatus) {
+                const icon = prContext.lintingStatus.passed ? '✅' : '❌';
+                body += `- ${icon} Linting: ${prContext.lintingStatus.passed ? 'Passed' : 'Failed'}`;
+                if (prContext.lintingStatus.errors || prContext.lintingStatus.warnings) {
+                    body += ` (${prContext.lintingStatus.errors || 0} errors, ${prContext.lintingStatus.warnings || 0} warnings)`;
+                }
+                body += '\n';
+            }
+            if (prContext.typeCheckStatus) {
+                const icon = prContext.typeCheckStatus.passed ? '✅' : '❌';
+                body += `- ${icon} Type Check: ${prContext.typeCheckStatus.passed ? 'Passed' : 'Failed'}`;
+                if (prContext.typeCheckStatus.errors) {
+                    body += ` (${prContext.typeCheckStatus.errors} errors)`;
+                }
+                body += '\n';
+            }
+            body += '\n';
+        }
+        // Suggested labels
+        if (prContext.suggestedLabels && prContext.suggestedLabels.length > 0) {
+            body += `## 🏷️ Suggested Labels\n`;
+            body += prContext.suggestedLabels.map(label => `\`${label}\``).join(', ');
+            body += '\n\n';
+        }
+        // Footer
+        body += `---\n\n`;
+        body += `🤖 Generated with [Git Collabiteration Manager](https://github.com/brkthru/git-collabiteration-manager)\n\n`;
+        body += `Co-Authored-By: Git Collabiteration Manager <noreply@brkthru.com>`;
+        return body;
+    }
+    /**
+     * Find PR template for the project
+     */
+    findPRTemplate(collabiteration) {
+        const projectId = collabiteration.projectContext.projectId;
+        const templatePath = (0, path_1.join)(__dirname, '../../contexts', projectId, 'templates', `${projectId}-pr.md`);
+        if ((0, fs_1.existsSync)(templatePath)) {
+            return templatePath;
+        }
+        // Check for generic PR template in project
+        const genericTemplatePath = (0, path_1.join)(collabiteration.workspacePath, '.github', 'pull_request_template.md');
+        if ((0, fs_1.existsSync)(genericTemplatePath)) {
+            return genericTemplatePath;
+        }
+        return null;
+    }
+    /**
+     * Render PR template with variables
+     */
+    renderPRTemplate(templatePath, collabiteration, prContext) {
+        let template = (0, fs_1.readFileSync)(templatePath, 'utf8');
+        // Replace iteration variables
+        template = template.replace(/{collabiterationName}/g, collabiteration.name);
+        template = template.replace(/{iterationName}/g, collabiteration.name);
+        template = template.replace(/{collabiterationBranch}/g, collabiteration.branch);
+        template = template.replace(/{createdDate}/g, new Date().toISOString());
+        template = template.replace(/{version}/g, '1.0.0'); // TODO: Read from package.json
+        // Replace service variables
+        template = template.replace(/{frontendPort}/g, String(collabiteration.services.frontend?.actualPort || 'N/A'));
+        template = template.replace(/{backendPort}/g, String(collabiteration.services.backend?.actualPort || 'N/A'));
+        template = template.replace(/{dbPort}/g, String(collabiteration.database?.actualPort || 'N/A'));
+        template = template.replace(/{dbSchema}/g, collabiteration.database?.schemaName || 'N/A');
+        // Replace extracted content variables
+        if (prContext.iterationSummary) {
+            template = template.replace(/{summary}/g, prContext.iterationSummary);
+        }
+        if (prContext.implementationDetails && prContext.implementationDetails.length > 0) {
+            const implementationList = prContext.implementationDetails.map(d => `- ${d}`).join('\n');
+            template = template.replace(/{implementation}/g, implementationList);
+        }
+        if (prContext.testingInstructions && prContext.testingInstructions.length > 0) {
+            const testingList = prContext.testingInstructions.map((t, i) => `${i + 1}. ${t}`).join('\n');
+            template = template.replace(/{testingSteps}/g, testingList);
+        }
+        if (prContext.jiraTickets && prContext.jiraTickets.length > 0) {
+            template = template.replace(/{jiraTickets}/g, prContext.jiraTickets.join(', '));
+        }
+        // Replace progress variables
+        if (prContext.progressStatus) {
+            template = template.replace(/{progressPercent}/g, String(prContext.progressStatus.overallProgress));
+            template = template.replace(/{currentPhase}/g, prContext.progressStatus.currentPhase || 'N/A');
+        }
+        // Replace success criteria
+        if (prContext.successCriteria && prContext.successCriteria.length > 0) {
+            const criteriaList = prContext.successCriteria.map(c => `- [ ] ${c}`).join('\n');
+            template = template.replace(/{successCriteria}/g, criteriaList);
+        }
+        // Replace review focus areas
+        if (prContext.reviewFocusAreas && prContext.reviewFocusAreas.length > 0) {
+            const focusList = prContext.reviewFocusAreas.map(area => `- ${area}`).join('\n');
+            template = template.replace(/{reviewFocusAreas}/g, focusList);
+        }
+        // Replace Figma links
+        if (prContext.figmaLinks && prContext.figmaLinks.length > 0) {
+            template = template.replace(/{figmaLinks}/g, prContext.figmaLinks.join('\n'));
+        }
+        // Replace suggested labels
+        if (prContext.suggestedLabels && prContext.suggestedLabels.length > 0) {
+            const labelsList = prContext.suggestedLabels.map(label => `\`${label}\``).join(', ');
+            template = template.replace(/{suggestedLabels}/g, labelsList);
+        }
+        // Replace quality check results
+        if (prContext.testsStatus) {
+            template = template.replace(/{testsIcon}/g, prContext.testsStatus.passed ? '✅' : '❌');
+            template = template.replace(/{testsStatus}/g, prContext.testsStatus.passed ? 'Passed' : 'Failed');
+        }
+        if (prContext.lintingStatus) {
+            template = template.replace(/{lintingIcon}/g, prContext.lintingStatus.passed ? '✅' : '❌');
+            template = template.replace(/{lintingStatus}/g, prContext.lintingStatus.passed ? 'Passed' : 'Failed');
+        }
+        if (prContext.typeCheckStatus) {
+            template = template.replace(/{typeCheckIcon}/g, prContext.typeCheckStatus.passed ? '✅' : '❌');
+            template = template.replace(/{typeCheckStatus}/g, prContext.typeCheckStatus.passed ? 'Passed' : 'Failed');
+        }
+        // Replace any remaining variables with defaults
+        template = template.replace(/{[^}]+}/g, 'N/A');
+        return template;
+    }
+    /**
+     * Run quality checks and populate status
+     */
+    async runQualityChecks(collabiteration) {
+        const results = {};
+        // Run tests
+        try {
+            console.log(chalk_1.default.blue('🧪 Running tests...'));
+            (0, child_process_1.execSync)('bun test', { cwd: collabiteration.workspacePath, stdio: 'pipe' });
+            results.tests = { passed: true };
+        }
+        catch (error) {
+            results.tests = {
+                passed: false,
+                details: 'Tests failed. Run `bun test` for details.'
+            };
+        }
+        // Run linting
+        try {
+            console.log(chalk_1.default.blue('🔍 Running linter...'));
+            (0, child_process_1.execSync)('bun run lint', { cwd: collabiteration.workspacePath, stdio: 'pipe' });
+            results.linting = { passed: true };
+        }
+        catch (error) {
+            results.linting = {
+                passed: false,
+                details: 'Linting failed. Run `bun run lint` for details.'
+            };
+        }
+        // Run type checking
+        try {
+            console.log(chalk_1.default.blue('📐 Running type check...'));
+            (0, child_process_1.execSync)('bun run typecheck', { cwd: collabiteration.workspacePath, stdio: 'pipe' });
+            results.typeCheck = { passed: true };
+        }
+        catch (error) {
+            results.typeCheck = {
+                passed: false,
+                details: 'Type checking failed. Run `bun run typecheck` for details.'
+            };
+        }
+        return results;
     }
     printIterationInfo(collabiteration) {
         console.log(chalk_1.default.cyan('\n📊 Iteration Info:'));

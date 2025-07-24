@@ -55,7 +55,7 @@ export declare class ConventionDetector {
     /**
      * Format branch name according to conventions
      */
-    formatBranchName(iterationName: string, conventions: RepoConventions['branchNaming']): string;
+    formatBranchName(iterationName: string, conventions: RepoConventions['branchNaming'], jiraTicket?: string): string;
     /**
      * Format commit message according to conventions
      */

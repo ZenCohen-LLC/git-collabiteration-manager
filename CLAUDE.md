@@ -15,8 +15,9 @@ Start a new collabiteration. When you see this command:
 1. Check that user is in a project directory (NOT in git-collabiteration-manager)
 2. If not, ask them to `cd` to their project directory first
 3. Gather requirements for the feature
-4. Create an iteration plan in `./collabiterations/[iteration-name]/`
-5. Guide through setting up an isolated development environment
+4. **If the project uses Jira ticket branch naming (e.g., feat/BRAV-1234/description)**, prompt for Jira ticket number
+5. Create an iteration plan in `./collabiterations/[iteration-name]/`
+6. Guide through setting up an isolated development environment
 
 #### /resume-iteration  
 Resume work on an existing iteration. When you see this command:
@@ -299,7 +300,9 @@ const services = Object.entries(context.services)
 git-collabiteration init
 
 # Feature development cycle
-git-collabiteration create feature-name --description="What you're building"
+git-collabiteration create feature-name --description="What you're building" --ticket="BRAV-1234"
+# Or interactively (will prompt for Jira ticket if project uses that convention):
+git-collabiteration create feature-name
 git-collabiteration start feature-name
 # ... develop in isolated environment ...
 git-collabiteration share feature-name --title="Feature: Amazing Thing"

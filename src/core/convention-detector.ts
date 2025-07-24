@@ -326,9 +326,9 @@ export class ConventionDetector {
   /**
    * Format branch name according to conventions
    */
-  formatBranchName(iterationName: string, conventions: RepoConventions['branchNaming']): string {
+  formatBranchName(iterationName: string, conventions: RepoConventions['branchNaming'], jiraTicket?: string): string {
     if (!conventions || !conventions.format) {
-      return `iteration/${iterationName}`;
+      return jiraTicket ? `iteration/${jiraTicket}/${iterationName}` : `iteration/${iterationName}`;
     }
 
     // Default to 'feat' category for iterations
@@ -347,7 +347,7 @@ export class ConventionDetector {
     let branchName = conventions.format;
     branchName = branchName.replace(/[<\[{]?category[>\]}]?/i, category);
     branchName = branchName.replace(/[<\[{]?type[>\]}]?/i, category);
-    branchName = branchName.replace(/[<\[{]?reference[>\]}]?/i, '');
+    branchName = branchName.replace(/[<\[{]?reference[>\]}]?/i, jiraTicket || '');
     branchName = branchName.replace(/[<\[{]?description[>\]}]?/i, iterationName);
     branchName = branchName.replace(/[<\[{]?name[>\]}]?/i, iterationName);
     

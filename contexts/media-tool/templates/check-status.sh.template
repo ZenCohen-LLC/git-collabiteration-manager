@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# {{ITERATION_NAME}} Iteration Status Check
+# This script checks the status of all services for the {{ITERATION_NAME}} iteration
+
+echo "🔍 Checking {{ITERATION_NAME}} Iteration Status..."
+echo ""
+
+# Navigate to the correct directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR/.."
+
+# Check Docker
+echo "🐳 Docker Status:"
+if docker info > /dev/null 2>&1; then
+    echo "   ✅ Docker is running"
+    
+    # Check database container
+    if docker ps | grep -q {{ITERATION_NAME}}.*postgres; then
+        echo "   ✅ Database container is running"
+        
+        # Check if database is healthy
+        if docker compose -f docker-compose.{{ITERATION_NAME}}.yml ps postgres | grep -q "healthy"; then
+            echo "   ✅ Database is healthy"
+        else
+            echo "   ⚠️  Database is not healthy"
+        fi
+    else
+        echo "   ❌ Database container is not running"
+    fi
+else
+    echo "   ❌ Docker is not running"
+fi
+
+echo ""
+echo "🔧 Backend Status:"
+if ps aux | grep -v grep | grep -q "bun.*{{BACKEND_PORT}}"; then
+    echo "   ✅ Backend process is running"
+    
+    # Check API endpoint
+    if curl -s http://localhost:{{BACKEND_PORT}}/api/users/me > /dev/null 2>&1; then
+        echo "   ✅ Backend API is responding"
+    else
+        echo "   ⚠️  Backend API is not responding"
+    fi
+else
+    echo "   ❌ Backend process is not running"
+fi
+
+echo ""
+echo "🎨 Frontend Status:"
+if ps aux | grep -v grep | grep -q "vite.*{{FRONTEND_PORT}}"; then
+    echo "   ✅ Frontend process is running"
+    
+    # Check frontend endpoint
+    if curl -s http://localhost:{{FRONTEND_PORT}}/ > /dev/null 2>&1; then
+        echo "   ✅ Frontend is responding"
+    else
+        echo "   ⚠️  Frontend is not responding"
+    fi
+else
+    echo "   ❌ Frontend process is not running"
+fi
+
+echo ""
+echo "📊 Summary:"
+echo "   Frontend URL: http://localhost:{{FRONTEND_PORT}}/"
+echo "   Backend API: http://localhost:{{BACKEND_PORT}}/api/"
+echo "   Database: localhost:{{DB_PORT}}"
+
+echo ""
+echo "📝 Log Files:"
+if [ -f backend.log ]; then
+    echo "   Backend log: ./backend.log ($(wc -l < backend.log) lines)"
+else
+    echo "   Backend log: Not found"
+fi
+
+if [ -f frontend.log ]; then
+    echo "   Frontend log: ./frontend.log ($(wc -l < frontend.log) lines)"
+else
+    echo "   Frontend log: Not found"
+fi
+
+echo ""
+echo "💡 Commands:"
+echo "   Start all services: ./scripts/start-iteration.sh"
+echo "   Stop all services: ./scripts/stop-iteration.sh"
+echo "   View backend logs: tail -f backend.log"
+echo "   View frontend logs: tail -f frontend.log"

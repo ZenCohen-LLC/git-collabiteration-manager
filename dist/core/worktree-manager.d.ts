@@ -3,6 +3,7 @@ export declare class WorktreeManager {
     private contextDetector;
     private conventionDetector;
     private progressTracker;
+    private prContentExtractor;
     private globalConfigPath;
     private contextStoragePath;
     constructor(globalConfigPath?: string);
@@ -17,6 +18,7 @@ export declare class WorktreeManager {
         fromBranch?: string;
         description?: string;
         autoStart?: boolean;
+        jiraTicket?: string;
     }): Promise<IterationInstance>;
     /**
      * Start an iteration
@@ -32,6 +34,8 @@ export declare class WorktreeManager {
     shareIteration(name: string, projectPath: string, options?: {
         title?: string;
         description?: string;
+        interactive?: boolean;
+        extractContent?: boolean;
     }): Promise<string>;
     /**
      * List all iterations for a project
@@ -57,6 +61,26 @@ export declare class WorktreeManager {
     private runPreShareHooks;
     private waitForDatabase;
     private generatePRBody;
+    /**
+     * Build enhanced PR context with extracted content
+     */
+    private buildEnhancedPRContext;
+    /**
+     * Generate enhanced PR body with rich content
+     */
+    private generateEnhancedPRBody;
+    /**
+     * Find PR template for the project
+     */
+    private findPRTemplate;
+    /**
+     * Render PR template with variables
+     */
+    private renderPRTemplate;
+    /**
+     * Run quality checks and populate status
+     */
+    private runQualityChecks;
     private printIterationInfo;
     /**
      * Update progress for an iteration
