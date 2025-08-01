@@ -176,10 +176,11 @@ Great! The next step is to create the isolated development environment.
 
 When you're ready to execute Stage 1, just let me know and I'll:
 1. Create the collabiteration using gcm
-2. Set up the isolated environment
+2. Set up the isolated environment with TEST_MODE=true to bypass authentication
 3. Configure ports and database
-4. Populate the iteration assistant
-5. Verify everything is working
+4. Run database migrations and generate test data
+5. Populate the iteration assistant
+6. Verify everything is working
 
 Just say "Let's execute Stage 1" when you're ready!
 ```
@@ -205,3 +206,7 @@ Throughout this process:
 - ✅ Set up for parallel agent development
 - ✅ Maintain conversational, helpful tone
 - ✅ Guide user through each step clearly
+- ✅ Configure TEST_MODE=true for auth bypass in all iterations
+- ✅ Create test user (test@mail.com) in database for auth bypass
+- ✅ Ensure database queries use proper schema prefixes
+- ✅ Run test:db-setup to populate database with test data

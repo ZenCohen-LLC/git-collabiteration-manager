@@ -49,6 +49,15 @@ Asks for:
 - Technical challenges
 - Scope estimation
 
+### Environment Setup
+**CRITICAL**: Use the GIT_COLLABITERATION_SETUP_GUIDE.md as reference for:
+- Docker compose configuration with ALL Flyway placeholders
+- Backend port configuration (must use PORT env variable)
+- Frontend proxy configuration (must use environment variables)
+- Database user setup with correct permissions
+- Test user creation with ALL required fields (email, name, zoho_user_id)
+- Startup/shutdown/health-check scripts
+
 ### Testing Strategy
 - Unit test requirements
 - Integration test needs

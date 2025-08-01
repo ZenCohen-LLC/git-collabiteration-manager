@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.3
+    container_name: {iterationName}-postgres
+    environment:
+      POSTGRES_DB: media_tool
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "{dbPort}:5432"
+    volumes:
+      - {iterationName}-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flyway:
+    image: flyway/flyway:10.16
+    container_name: {iterationName}-flyway
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/media_tool?currentSchema=media_tool
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: postgres
+      FLYWAY_CONNECT_RETRIES: 60
+      FLYWAY_SCHEMAS: media_tool,cds
+      FLYWAY_DEFAULT_SCHEMA: media_tool
+      FLYWAY_CREATE_SCHEMAS: 'true'
+      FLYWAY_VALIDATE_MIGRATION_NAMING: 'true'
+      # ALL required placeholders
+      FLYWAY_PLACEHOLDERS_GRAFANA_READER_PASSWORD: test_password
+      FLYWAY_PLACEHOLDERS_SNOWFLAKE_LOADER_PASSWORD: test_password
+      FLYWAY_PLACEHOLDERS_SNOWFLAKE_LOADER_USER_PASSWORD: test_password
+      FLYWAY_PLACEHOLDERS_MEDIA_TOOL_USER_PASSWORD: pass
+      FLYWAY_PLACEHOLDERS_MEDIA_TOOL_DB_NAME_SUFFIX: ""
+    volumes:
+      - ./db/migrations:/flyway/sql
+      - ./db/fixtures:/flyway/fixtures
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - setup
+
+volumes:
+  {iterationName}-postgres-data:
+    name: {iterationName}-postgres-data

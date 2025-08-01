@@ -1,405 +1,236 @@
-# Git Collabiteration Manager - Claude Context
+# Git Collabiteration Manager - Claude Instructions
 
-This is a **context-aware git worktree collabiteration management system** built to solve the challenge of managing isolated development environments for feature work while preserving rich project-specific configurations.
+## 🚀 Simplified System - Use ONLY These 4 Workflows
 
-## 🚀 Quick Start with Slash Commands
+### Core Principle
+**ONE way to do each thing. NO alternatives. NO variations.**
 
-**IMPORTANT: You must be in a project directory (not the git-collabiteration-manager directory) to use these commands.**
+### ⚠️ CRITICAL: Never Modify the media-tool Directory
+**The freshbravo/media-tool directory is SACRED and READ-ONLY**
+- NEVER make changes directly to /Users/christophergarrison/freshbravo/media-tool
+- This directory should remain 1:1 with what's in git
+- ALL changes happen through git worktrees in collabiterations/
+- Updates to media-tool come ONLY from git pull
+- Changes are contributed back via PRs from iteration branches
 
-### Custom Slash Commands
+### 🎯 IMPORTANT: Funnel of Focus
+**When working on iterations, ALWAYS start here:**
+- Read `/Users/christophergarrison/freshbravo/git-collabiteration-manager/START_HERE.md`
+- This file contains the exact sequence for picking up any iteration work
+- DO NOT skip this step - it prevents lost work and confusion
 
-When you see these commands in a conversation:
+## The 4 Workflows
 
-#### /iterate
-Start a new collabiteration. When you see this command:
-1. Check that user is in a project directory (NOT in git-collabiteration-manager)
-2. If not, ask them to `cd` to their project directory first
-3. Gather requirements for the feature
-4. **If the project uses Jira ticket branch naming (e.g., feat/BRAV-1234/description)**, prompt for Jira ticket number
-5. Create an iteration plan in `./collabiterations/[iteration-name]/`
-6. Guide through setting up an isolated development environment
+### 1. /iterate - Create New Iteration
 
-#### /resume-iteration  
-Resume work on an existing iteration. When you see this command:
-1. Check for a `collabiterations/` directory relative to current working directory
-2. List all subdirectories as available iterations
-3. Ask which iteration to resume
-4. Load the selected iteration's documentation (ITERATION_PLAN.md or similar)
-5. Continue work based on the iteration's current state
+When user says `/iterate` or wants to start new work:
 
-Example response:
-```
-I'll check for available iterations to resume...
-
-Found collabiterations at: ./collabiterations/
-
-Available iterations:
-1. custom-pacing (has CUSTOM_PACING_ITERATION_PLAN.md)
-2. line-item-types (full project structure)
-3. tailwinds-refactor (full project structure)
-
-Which iteration would you like to resume?
+```markdown
+1. ALWAYS pull latest main first
+2. ALWAYS ask for Jira ticket (if project uses them)  
+3. ALWAYS use: gcm create [name] --ticket BRAV-XXXX
+4. ALWAYS verify health check passes
+5. ALWAYS confirm browser opens without login
 ```
 
-#### /remove-iteration
-Clean up a completed iteration. This removes git worktrees and frees resources.
+**What happens automatically:**
+- Git worktree created in `/collabiterations/[name]/`
+- Ports allocated: frontend 5180+, backend 3010+, database 5440+
+- TEST_MODE=true set everywhere
+- Test user created: test@mail.com
+- Test campaigns: 2 of each type
+- Claude Flow initialized
 
-## 🎯 Purpose & Problem Solved
+**NEVER:**
+- Skip pulling latest code
+- Create alternative setup methods
+- Modify the automated process
+- Proceed if health check fails
 
-### The Challenge
-Traditional development workflows have limitations when working on multiple features or iterations:
+### 2. /resume-iteration - Continue Work
 
-- **Branch switching** requires constant context switching, stashing, and rebuilding
-- **Manual worktrees** lack automation and consistent configuration
-- **Docker dev environments** are slow and don't integrate well with git workflows
-- **Copy-based iterations** create merge conflicts and lose git history
-- **One-size-fits-all tools** don't adapt to different project complexities
+When user says `/resume-iteration`:
 
-### The Solution
-A **context-aware collabiteration manager** that:
-- Automatically detects project structure and applies rich, pre-built configurations
-- Uses git worktrees for true isolation with complete project copies
-- Provides dedicated databases, ports, and environments per iteration
-- Enables seamless PR workflows with rich metadata and automation
-- Works universally across any project while preserving project-specific intelligence
-
-## 🧠 Context Intelligence System
-
-### Core Innovation: Project Fingerprinting
-The tool analyzes projects using multiple signals:
-
-```typescript
-interface ProjectFingerprint {
-  gitRemote?: string;           // Repository identification
-  packageJson?: object;         // Dependencies and workspace structure  
-  dockerCompose?: boolean;      // Infrastructure requirements
-  directories: string[];        // Project structure patterns
-  frameworks: string[];         // Technology stack detection
-  customMarkers: string[];      // Project-specific identifiers
-  filePatterns: Record<string, boolean>; // Configuration files
-}
+```markdown
+1. List iterations from ./collabiterations/
+2. ALWAYS run health check first
+3. Start ONLY missing services
+4. NEVER restart running services
+5. Load iteration context and continue
 ```
 
-### Rich Context Preservation
-For known projects (like Brkthru Media Tool), the system maintains:
-- Complete database setup with migrations and seeding
-- Multi-service orchestration (frontend, backend, database)
-- Port allocation and environment isolation
-- Quality check integration (linting, type checking, testing)
-- Custom PR templates with iteration metadata
-- Project-specific hooks and automation
-
-### Adaptive Learning
-For new projects, the system:
-- Detects technology stack and common patterns
-- Builds appropriate basic configuration
-- Learns and improves context over time
-- Saves successful configurations for reuse
-
-## 🏗️ Architecture Overview
-
-### Directory Structure
-```
-git-collabiteration-manager/
-├── bin/git-collabiteration.js                 # Global CLI entry point
-├── src/
-│   ├── core/
-│   │   ├── context-detector.ts          # Project analysis and matching
-│   │   └── worktree-manager.ts          # Core iteration management
-│   └── types/project-context.ts         # Type definitions
-├── contexts/
-│   └── media-tool/                      # Rich context for known projects
-│       ├── project-config.json         # Complete configuration
-│       ├── templates/                   # Project-specific templates
-│       │   ├── docker-compose.media-tool.yml
-│       │   ├── env.media-tool.template
-│       │   ├── package-scripts.media-tool.json
-│       │   └── media-tool-pr.md
-│       └── hooks/
-│           └── post-create.ts           # Custom setup automation
-└── package.json                        # Standalone npm package
-```
-
-### Key Components
-
-**ContextDetector**: Analyzes project structure and matches against known contexts
-- Fingerprint generation from multiple project signals
-- Similarity matching with weighted scoring
-- Context versioning and metadata tracking
-
-**WorktreeManager**: Handles git worktree lifecycle and environment setup
-- Branch creation and worktree management
-- Port allocation and service configuration
-- Database schema isolation
-- PR creation and sharing workflow
-
-**Project Contexts**: Rich configurations for known project types
-- Complete service definitions and dependencies
-- Template files for environment setup
-- Custom hooks for project-specific automation
-- Quality check integration
-
-## 💡 Key Innovations
-
-### 1. **Context Inheritance**
-Projects inherit rich configurations automatically:
-- Media Tool projects get full PostgreSQL+Flyway+React+Node setup
-- React apps get Vite dev server configuration
-- Node APIs get appropriate backend setup
-- Generic projects get basic git worktree workflow
-
-### 2. **Intelligent Port Allocation**
-Deterministic port assignment based on iteration name hashing:
-- Avoids conflicts between concurrent iterations
-- Consistent ports for same iteration across restarts
-- Automatic service dependency resolution
-
-### 3. **Template System**
-Project-specific templates with variable substitution:
-- Docker compose files with dedicated databases
-- Environment files with service URLs and ports
-- Package.json script injection for iteration management
-- PR templates with rich metadata and testing instructions
-
-### 4. **Hook System**
-Extensible automation for project-specific setup:
-- Post-create hooks for dependency installation and database setup
-- Pre-start hooks for service readiness checks
-- Pre-share hooks for quality validation
-- Custom hooks for project-specific workflows
-
-## 🎯 Business Value
-
-### For Development Teams
-- **Faster collabiteration cycles**: No context switching or environment conflicts
-- **Parallel development**: Multiple features can be developed simultaneously
-- **Quality assurance**: Built-in checks prevent broken code from being shared
-- **Knowledge preservation**: Team workflows are codified and automated
-
-### For Project Owners
-- **Consistent environments**: Every iteration gets identical, reliable setup
-- **Reduced onboarding**: New developers get working environments instantly
-- **Risk mitigation**: Isolated environments prevent conflicts and data corruption
-- **Documentation automation**: PR templates and metadata improve code review
-
-### For Organizations
-- **Tool standardization**: One system works across multiple projects and tech stacks
-- **Process improvement**: Captures and replicates best practices automatically
-- **Developer productivity**: Eliminates manual environment setup and configuration
-- **Maintainability**: Centralized tool that improves rather than fragmenting
-
-## 📚 Lessons Learned
-
-### What Works Well
-
-**1. Context-Aware Approach**
-- Auto-detection is far superior to manual configuration
-- Rich contexts for complex projects provide massive value
-- Adaptive fallbacks ensure universal applicability
-
-**2. Git Worktree Foundation**
-- True isolation without virtualization overhead
-- Native git integration preserves history and workflows
-- IDE compatibility without special configuration
-
-**3. Template-Based Configuration**
-- Variable substitution enables flexible, reusable templates
-- Project-specific templates capture domain knowledge
-- Separation of templates from logic improves maintainability
-
-**4. Deterministic Resource Allocation**
-- Hash-based port allocation prevents conflicts reliably
-- Consistent naming conventions aid debugging and documentation
-- Service dependency resolution enables complex multi-service setups
-
-### Challenges Overcome
-
-**1. TypeScript Module Resolution**
-- ES modules vs CommonJS compatibility issues
-- Solved with careful tsconfig and package.json configuration
-- Import/export consistency across CLI and library code
-
-**2. Git Remote Handling**
-- Not all repositories have configured remotes
-- Graceful fallbacks for local-only repositories
-- Optional remote operations with clear user feedback
-
-**3. Database Schema Isolation**
-- Template variable substitution for schema names
-- Volume naming conventions to prevent data conflicts
-- Migration handling with project-specific tooling
-
-**4. Service Orchestration**
-- Dependency resolution between services (database → backend → frontend)
-- Health check integration for reliable startup
-- Environment variable propagation across services
-
-### Performance Considerations
-
-**1. Context Detection Speed**
-- File system operations are cached where possible
-- Directory traversal is limited to 2 levels deep
-- Package.json parsing is selective for key indicators
-
-**2. Worktree Creation Time**
-- Git operations are the primary bottleneck
-- Template file generation is optimized for minimal I/O
-- Dependency installation is optional and user-controlled
-
-**3. Resource Usage**
-- Each iteration requires disk space for complete project copy
-- Port allocation is managed to prevent conflicts
-- Database resources are isolated but accumulate over time
-
-## 🔧 Implementation Patterns
-
-### Error Handling Strategy
-```typescript
-// Graceful degradation for missing dependencies
-try {
-  execSync('git push origin ${branch}', { stdio: 'inherit' });
-} catch {
-  console.log('⚠️  Could not push to remote (no remote configured?)');
-}
-```
-
-### Template Variable Substitution
-```typescript
-// Flexible template system with multiple variable sources
-const template = readFileSync(templatePath, 'utf8');
-const rendered = template
-  .replace(/{iterationName}/g, context.name)
-  .replace(/{dbPort}/g, context.database.actualPort.toString())
-  .replace(/{frontendPort}/g, context.services.frontend.actualPort.toString());
-```
-
-### Context Matching Algorithm
-```typescript
-// Multi-signal matching with weighted scoring
-private isContextMatch(fingerprint: ProjectFingerprint, context: ProjectContext): boolean {
-  // 1. Exact git remote match (highest priority)
-  // 2. Package.json structure similarity  
-  // 3. Custom marker overlap (70% threshold)
-  // 4. Directory structure similarity (80% threshold)
-  return matchScore > threshold;
-}
-```
-
-### Service Dependency Resolution
-```typescript
-// Automatic service startup ordering
-const services = Object.entries(context.services)
-  .sort((a, b) => (a[1].dependencies?.length || 0) - (b[1].dependencies?.length || 0));
-```
-
-## 🚀 Usage Patterns
-
-### Typical Workflow
+**Health Check Priority:**
 ```bash
-# One-time setup per project
-git-collabiteration init
-
-# Feature development cycle
-git-collabiteration create feature-name --description="What you're building" --ticket="BRAV-1234"
-# Or interactively (will prompt for Jira ticket if project uses that convention):
-git-collabiteration create feature-name
-git-collabiteration start feature-name
-# ... develop in isolated environment ...
-git-collabiteration share feature-name --title="Feature: Amazing Thing"
-
-# Cleanup after merge
-git-collabiteration remove feature-name --force
+✅ If all healthy → Ready to continue
+❌ If Docker not running → Stop, user must start Docker
+⚠️  If some services down → Start only those
+🔐 If auth broken → Fix TEST_MODE, restart backend
 ```
 
-### Advanced Scenarios
-```bash
-# Multiple parallel iterations
-git-collabiteration create feature-a && git-collabiteration create feature-b
-git-collabiteration start feature-a  # Ports 3020-3021, DB 5462
-git-collabiteration start feature-b  # Ports 3030-3031, DB 5472
+**NEVER:**
+- Restart services that are running
+- Drop and recreate database
+- Delete test user
+- Ignore health check results
 
-# Team collaboration
-git checkout iteration/teammate-feature
-git-collabiteration start teammate-feature  # Auto-configures their environment
+### 3. gcm share - Create Clean PR
 
-# Cross-project usage
-cd /react-app && git-collabiteration init    # Detects React, configures appropriately
-cd /node-api && git-collabiteration init     # Detects Node, configures appropriately
-cd /media-tool && git-collabiteration init   # Detects media-tool, loads rich context
+When ready to share:
+
+```markdown
+1. Check for uncommitted changes
+2. Create clean feature branch
+3. Cherry-pick commits (exclude iteration files)
+4. Remove all auth bypass code
+5. Rebase on latest main
+6. Create PR with metadata
 ```
 
-## 🎨 Extensibility
+**Files ALWAYS excluded:**
+- docker-compose.*.yml
+- .env files
+- Scripts in scripts/
+- STARTUP.md, ITERATION_PLAN.md
+- *.log files
+- TEST_MODE references
 
-### Adding New Project Types
-1. Create context configuration in `contexts/project-name/`
-2. Add fingerprint patterns for detection
-3. Create templates for environment setup
-4. Implement custom hooks for project-specific automation
+### 4. /remove-iteration - Clean Up
 
-### Custom Hooks
-```typescript
-// Example: Post-create hook for custom project setup
-export async function setupCustomProject(
-  iterationPath: string,
-  iterationName: string, 
-  context: ProjectContext
-): Promise<void> {
-  // Custom dependency installation
-  // Database initialization
-  // Service configuration
-  // Development data setup
+When done with iteration:
+
+```markdown
+1. Check for uncommitted work
+2. Stop all services
+3. Remove git worktree
+4. Clean Docker volumes
+5. Free allocated ports
+```
+
+## Critical Rules
+
+### Database Operations
+```sql
+-- NEVER do this:
+DROP DATABASE media_tool;
+TRUNCATE TABLE users;
+
+-- ALWAYS preserve test user:
+ON CONFLICT (email) DO UPDATE SET zoho_user_id = 'test-zoho-id';
+```
+
+### Component Development
+```markdown
+1. ALWAYS check Figma first
+2. ALWAYS write Playwright tests
+3. ALWAYS use Claude Flow coordination
+4. NEVER declare "done" without tests
+```
+
+### Port Allocation
+```javascript
+// Deterministic based on iteration name
+const hash = crypto.createHash('md5').update(iterationName).digest();
+const offset = (hash[0] % 20) * 10;
+// Results in: 0, 10, 20, ... 190
+```
+
+### Test Data
+Every iteration gets:
+- Test user: test@mail.com with zoho_user_id
+- 2 campaigns per stage (all stages)
+- Line items: standard, management fee, zero dollar
+- All required functions and permissions
+
+## Claude Flow Integration
+
+### Automatic on Create
+```javascript
+npx claude-flow@alpha swarm init \
+  --topology hierarchical \
+  --max-agents 5 \
+  --session "[iteration-name]"
+```
+
+### Agent Coordination Rules
+1. **Before creating files**: Check dependencies won't create circles
+2. **After creating component**: Register in memory
+3. **Before marking complete**: Verify all criteria met
+4. **Always communicate**: Through Claude Flow memory
+
+### Circular Dependency Prevention
+```javascript
+// This is handled automatically
+if (wouldCreateCircularDependency(deps, file, imports)) {
+  throw new Error('Circular dependency detected!');
 }
 ```
 
-### Template Customization
-Templates support variable substitution and conditional logic:
-- `{iterationName}` - Iteration identifier
-- `{dbPort}`, `{frontendPort}`, `{backendPort}` - Allocated ports
-- `{dbSchema}` - Database schema name
-- `{createdDate}` - ISO timestamp
-- Custom variables from project context
+## Common Issues & ONLY Solutions
 
-## 🔮 Future Enhancements
+### "Login screen showing"
+```bash
+echo "TEST_MODE=true" >> .env
+# Restart backend
+```
 
-### Planned Features
-- **Interactive project setup**: Guided configuration for new project types
-- **Team context sharing**: Export/import contexts for team standardization
-- **Cloud integration**: Remote development environment provisioning
-- **Monitoring dashboard**: Resource usage and iteration analytics
-- **Template marketplace**: Community-contributed project configurations
+### "Port conflict"
+```bash
+lsof -ti:5180 | xargs kill -9
+# Or use different iteration name
+```
 
-### Architectural Improvements
-- **Plugin system**: Third-party extensions for specialized workflows
-- **Context versioning**: Migration system for evolving project configurations
-- **Resource optimization**: Shared dependencies and intelligent caching
-- **Integration APIs**: Hooks for CI/CD and project management tools
+### "Database error"
+```bash
+# Check Docker is running
+docker ps
+# Run health check
+./scripts/health-check.sh
+```
 
-## 💭 Philosophy
+### "Circular dependency"
+Let Claude Flow coordinator suggest refactoring
 
-The Git Collabiteration Manager embodies several key principles:
+## What's Been Simplified
 
-**1. Intelligence Over Configuration**
-- Tools should understand context and adapt automatically
-- Rich defaults beat extensive configuration options
-- Learning systems improve over time without user intervention
+### Before (Complex)
+- 10+ different STARTUP.md files
+- 5+ ways to bypass auth
+- Multiple health check scripts
+- Various port schemes
+- Competing workflows
 
-**2. Isolation Without Overhead**
-- True environment isolation shouldn't require virtualization
-- Native tooling integration beats abstraction layers
-- Developers should work with familiar tools and workflows
+### After (Simple)
+- 1 template set in /templates
+- 1 auth method: TEST_MODE=true
+- 1 health check script
+- 1 port algorithm
+- 1 way per workflow
 
-**3. Knowledge Preservation**
-- Team expertise should be captured in tooling
-- Best practices should be automated and enforced
-- Institutional knowledge shouldn't be lost when people leave
+## NEVER Create These
 
-**4. Universal Applicability**
-- Solutions should work across different projects and tech stacks
-- Adaptive systems beat one-size-fits-all approaches
-- Graceful degradation ensures broad compatibility
+1. Alternative startup scripts
+2. Different auth bypass methods
+3. New health check variants
+4. Custom port allocations
+5. Workflow variations
 
-This tool represents a new paradigm for development environment management: **context-aware, intelligent automation that preserves human expertise while eliminating repetitive configuration work**.
+## Success Metrics
+
+When working correctly:
+- ✅ Browser opens without login
+- ✅ test@mail.com shown in UI
+- ✅ Test campaigns visible
+- ✅ All services healthy
+- ✅ Claude Flow preventing issues
+
+## The Golden Rules
+
+1. **If it's working, don't change it**
+2. **If it's broken, run health check first**
+3. **One way to do things, not multiple**
+4. **Trust the automation**
+5. **Follow the 4 workflows exactly**
 
 ---
 
-**Built with deep understanding of real development workflows and the complexity of modern software projects.**
+**Remember**: The system is designed to just work. Don't create alternatives or "improvements" - use what's been simplified and tested.

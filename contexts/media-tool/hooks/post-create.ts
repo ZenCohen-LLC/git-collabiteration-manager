@@ -56,8 +56,23 @@ export async function setupMediaToolIteration(
     // 6. Setup for test mode authentication
     console.log(chalk.blue('\n🔓 Setting up test mode authentication...'));
     console.log(chalk.green('✅ TEST_MODE=true is already set in .env'));
+    
+    // Create test user for TEST_MODE
+    console.log(chalk.gray('   Creating test user for authentication bypass...'));
+    try {
+      execSync(`docker exec media-tool-postgres-1 psql -U postgres -d ${context.database.schemaName || 'media_tool'} -c "SET search_path TO media_tool, public;" -c "INSERT INTO users (id, name, email, zoho_user_id, created_at, updated_at) VALUES ('11111111-1111-1111-1111-111111111111', 'Test User', 'test@mail.com', 'test-zoho-id', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, updated_at = NOW();"`, { stdio: 'pipe' });
+      console.log(chalk.green('✅ Test user created successfully'));
+    } catch (error) {
+      console.log(chalk.yellow('⚠️  Could not create test user (may already exist or table not ready)'));
+    }
 
-    // 7. Show helpful information
+    // 7. Important reminders
+    console.log(chalk.yellow('\n⚠️  Important Notes:'));
+    console.log(chalk.white('   - If you see login screen, check troubleshooting in STARTUP.md'));
+    console.log(chalk.white('   - Database queries may need schema prefix (media_tool.*)'));
+    console.log(chalk.white('   - Test user: test@mail.com (auto-created)\n'));
+    
+    // 8. Show helpful information
     console.log(chalk.green('\n✅ Media Tool collabiteration setup complete!\n'));
     console.log(chalk.cyan('🌐 Service URLs:'));
     console.log(chalk.white(`   Frontend: http://localhost:${context.services.frontend.actualPort || '3000'}`));
